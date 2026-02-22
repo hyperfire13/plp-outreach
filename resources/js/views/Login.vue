@@ -3,7 +3,7 @@
     <div class="login-box">
       <div class="card">
         <div class="card-body login-card-body">
-          <h4 class="text-center mb-3">Login</h4>
+          <h4 class="text-center mb-3">PLP OUTREACH SYSTEM</h4>
 
           <form @submit.prevent="submit">
             <div class="mb-3">
