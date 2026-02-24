@@ -30,11 +30,18 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+// ROUTE GUARD
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
+
+  if (auth.token && !auth.user) {
+    await auth.fetchUser()
+  }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     next('/login')
+  } else if (to.path === '/login' && auth.isAuthenticated) {
+    next('/')
   } else {
     next()
   }
