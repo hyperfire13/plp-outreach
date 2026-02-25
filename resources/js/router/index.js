@@ -16,7 +16,7 @@ const routes = [
   {
     path: '/users',
     component: Users,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, roles: ['super_admin','college_admin'] }
   },
   {
     path: '/colleges',
@@ -39,12 +39,14 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    next('/login')
-  } else if (to.path === '/login' && auth.isAuthenticated) {
-    next('/')
-  } else {
-    next()
+    return next('/login')
   }
+
+  if (to.meta.roles && !to.meta.roles.includes(auth.role)) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router

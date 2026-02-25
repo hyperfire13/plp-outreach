@@ -2,19 +2,59 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\CollegeController;
+use App\Http\Controllers\API\RoleController;
 
 Route::prefix('v1')->group(function () {
 
-    Route::post('/login', [AuthController::class, 'login'])
-        ->middleware('throttle:5,1');
+    /*
+    |--------------------------------------------------------------------------
+    | AUTH ROUTES
+    |--------------------------------------------------------------------------
+    */
 
-    Route::post('/register', [AuthController::class, 'register'])
-        ->middleware('throttle:5,1');
+    Route::middleware('throttle:5,1')->group(function () {
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/register', [AuthController::class, 'register']);
+    });
 
-    Route::middleware('auth:sanctum')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | PROTECTED ROUTES
+    |--------------------------------------------------------------------------
+    */
 
+    Route::middleware(['auth:sanctum'])->group(function () {
+
+        // Auth
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
 
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/roles', [RoleController::class, 'index']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | USER MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::apiResource('users', UserController::class);
+
+        /*
+        |--------------------------------------------------------------------------
+        | COLLEGE MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        Route::apiResource('colleges', CollegeController::class);
+
     });
+
 });
