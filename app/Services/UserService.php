@@ -1,34 +1,41 @@
 <?php
 
-namespace App\Policies;
+namespace App\Services;
 
 use App\Models\User;
 
-class UserPolicy
+class UserService
 {
-    public function viewAny(User $authUser)
+    public function paginate($authUser, $perPage = 10)
     {
-        return in_array($authUser->role->name, ['super_admin', 'college_admin']);
-    }
-
-    public function create(User $authUser)
-    {
-        return in_array($authUser->role->name, ['super_admin', 'college_admin']);
-    }
-
-    public function update(User $authUser, User $user)
-    {
-        if ($authUser->role->name === 'super_admin') return true;
+        $query = User::with(['role','college'])
+            ->select('id','name','email','role_id','college_id','created_at');
 
         if ($authUser->role->name === 'college_admin') {
-            return $authUser->college_id === $user->college_id;
+            $query->where('college_id', $authUser->college_id);
         }
 
-        return false;
+        return $query->latest()->paginate($perPage);
     }
 
-    public function delete(User $authUser, User $user)
+    public function store(array $data)
     {
-        return $authUser->role->name === 'super_admin';
+        return User::create($data)->load('role','college');
+    }
+
+    public function update(User $user, array $data)
+    {
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
+        $user->update($data);
+
+        return $user->load('role','college');
+    }
+
+    public function delete(User $user)
+    {
+        $user->delete();
     }
 }

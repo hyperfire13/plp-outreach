@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\RoleController;
+use App\Http\Controllers\API\CommunityController;
 
 Route::prefix('v1')->group(function () {
 
@@ -54,6 +55,7 @@ Route::prefix('v1')->group(function () {
         */
 
         Route::apiResource('colleges', CollegeController::class);
+        Route::apiResource('communities', CommunityController::class);
 
     });
 
