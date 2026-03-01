@@ -175,6 +175,7 @@ const errors = reactive({})
 ========================= */
 const fetch = async (page = 1) => {
   const response = await collegeService.get(page)
+  alert(JSON.stringify(response))
   colleges.value = response.data
 }
 
