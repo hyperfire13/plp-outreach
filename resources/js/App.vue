@@ -9,9 +9,9 @@ import { onMounted } from 'vue'
 
 onMounted(() => {
   document.body.classList.add(
-    'hold-transition',
-    'sidebar-mini',
-    'layout-fixed'
+    'layout-fixed',
+    'sidebar-expand-lg',
+    'bg-body-tertiary'
   )
 })
 </script>

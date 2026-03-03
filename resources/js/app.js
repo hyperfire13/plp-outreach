@@ -7,7 +7,7 @@ import App from './App.vue'
 
 // JS only
 import 'bootstrap'
-import 'admin-lte'
+import 'admin-lte/dist/js/adminlte.js'
 
 const app = createApp(App)
 
