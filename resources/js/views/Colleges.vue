@@ -2,7 +2,7 @@
   <MainLayout>
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Colleges</h4>
+        <h4 class="mb-0">Collegesss</h4>
         <button class="btn btn-primary btn-sm" @click="openCreate">
           <i class="fas fa-plus me-1"></i> Add College
         </button>
@@ -175,7 +175,7 @@ const errors = reactive({})
 ========================= */
 const fetch = async (page = 1) => {
   const response = await collegeService.get(page)
-  alert(JSON.stringify(response))
+  // alert(JSON.stringify(response))
   colleges.value = response.data
 }
 
