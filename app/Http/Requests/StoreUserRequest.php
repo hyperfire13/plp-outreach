@@ -27,6 +27,13 @@ class StoreUserRequest extends FormRequest
             'role_id' => 'required|exists:roles,id',
 
             'college_id' => 'nullable|exists:colleges,id',
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+
+            'birthday' => 'nullable|date',
+
+            'contact_number' => 'nullable|string|max:20',
         ];
     }
 
