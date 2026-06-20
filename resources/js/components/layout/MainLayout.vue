@@ -1,18 +1,5 @@
 <template>
   <div class="app-wrapper">
-      <!-- <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <router-link class="nav-link" to="/">Dashboard</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/users">Users</router-link>
-          </li>
-          <li class="nav-item">
-            <router-link class="nav-link" to="/colleges">Colleges</router-link>
-          </li>
-        </ul>
-      </nav> -->
       <nav class="app-header navbar navbar-expand bg-body">
         <div class="container-fluid">
           <ul class="navbar-nav">
@@ -76,14 +63,14 @@
           <!--begin::Brand Link-->
           <a href="./index.html" class="brand-link">
             <!--begin::Brand Image-->
-            <img
+            <!-- <img
               src=""
               alt="AdminLTE Logo"
               class="brand-image opacity-75 shadow"
-            />
+            /> -->
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
-            <span class="brand-text fw-light">AdminLTE 4</span>
+            <span class="brand-text fw-light">PLP Outreach</span>
             <!--end::Brand Text-->
           </a>
           <!--end::Brand Link-->
@@ -101,59 +88,78 @@
               data-accordion="false"
               id="navigation"
             >
-              <li class="nav-item menu-open">
-                <a href="#" class="nav-link active">
-                  <i class="nav-icon bi bi-speedometer"></i>
-                  <p>
-                    Dashboard
-                    <i class="nav-arrow bi bi-chevron-right"></i>
-                  </p>
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <router-link to="/" class="nav-link">
+                    <i class="nav-icon bi bi-speedometer2"></i>
+                    <p>Dashboard</p>
+                </router-link>
+            </li>
+
+            <!-- Settings -->
+            <li class="nav-item menu-open">
+                <a href="#" class="nav-link" @click.prevent="toggleSettings">
+                    <i class="nav-icon bi bi-gear"></i>
+                    <p>
+                        Settings
+                        <i class="nav-arrow bi bi-chevron-right"></i>
+                    </p>
                 </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="./index.html" class="nav-link active">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Dashboard v1</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./index2.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Dashboard v2</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./index3.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Dashboard v3</p>
-                    </a>
-                  </li>
+
+                <ul class="nav nav-treeview"  v-show="settingsOpen">
+
+                    <li class="nav-item" :class="{ 'menu-open': settingsOpen }">
+                        <router-link to="/users" class="nav-link">
+                            <i class="nav-icon bi bi-people"></i>
+                            <p>Users</p>
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item">
+                        <router-link to="/colleges" class="nav-link">
+                            <i class="nav-icon bi bi-building"></i>
+                            <p>Colleges</p>
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item">
+                        <router-link to="/outreach-programs" class="nav-link">
+                            <i class="nav-icon bi bi-megaphone"></i>
+                            <p>Outreach Programs</p>
+                        </router-link>
+                    </li>
+
                 </ul>
-              </li>
+            </li>
               <li class="nav-item">
                 <a href="./generate/theme.html" class="nav-link">
                   <i class="nav-icon bi bi-palette"></i>
                   <p>Theme Generate</p>
                 </a>
               </li>
-              
+
             </ul>
             <!--end::Sidebar Menu-->
           </nav>
         </div>
         <!--end::Sidebar Wrapper-->
       </aside>
-     
+
       <main class="app-main">
         <slot />
       </main>
-   
+
 
   </div>
 </template>
 
-<script setup>  
+<script setup>
+  import { ref } from 'vue'
+  const settingsOpen = ref(false)
   const toggleSidebar = () => {
-  document.body.classList.toggle('sidebar-collapse')
-}
+    document.body.classList.toggle('sidebar-collapse')
+  }
+  const toggleSettings = () => {
+    settingsOpen.value = !settingsOpen.value
+  }
 </script>
