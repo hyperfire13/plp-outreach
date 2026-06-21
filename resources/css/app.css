@@ -8,3 +8,10 @@
 @import "admin-lte/dist/css/adminlte.min.css";
 /* BOostrap icons */
 @import "bootstrap-icons/font/bootstrap-icons.css";
+
+.sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1037;
+}

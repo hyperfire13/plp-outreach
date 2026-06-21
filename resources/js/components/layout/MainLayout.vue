@@ -1,10 +1,15 @@
 <template>
   <div class="app-wrapper">
+    <div
+      v-if="isMobile && isSidebarOpen"
+      class="sidebar-overlay"
+      @click="closeSidebar"
+    />
       <nav class="app-header navbar navbar-expand bg-body">
         <div class="container-fluid">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="#" role="button" @click.prevent="toggleSidebar">
+              <a class="nav-link sidebar-overlay"  href="#" role="button" @click.prevent="toggleSidebar">
                 <i class="bi bi-list"></i>
               </a>
             </li>
@@ -57,9 +62,9 @@
         </div>
       </nav>
       <!-- SIDEBAR -->
-       <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+       <aside class="app-sidebar bg-body-secondary shadow " >
         <!--begin::Sidebar Brand-->
-        <div class="sidebar-brand">
+        <div class="sidebar-brand bg-success text-white">
           <!--begin::Brand Link-->
           <a href="./index.html" class="brand-link">
             <!--begin::Brand Image-->
@@ -70,14 +75,14 @@
             /> -->
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
-            <span class="brand-text fw-light">PLP Outreach</span>
+            <span class="brand-text text-white">PLP Outreach</span>
             <!--end::Brand Text-->
           </a>
           <!--end::Brand Link-->
         </div>
         <!--end::Sidebar Brand-->
         <!--begin::Sidebar Wrapper-->
-        <div class="sidebar-wrapper">
+        <div class="sidebar-wrapper bg-success text-primary">
           <nav class="mt-2">
             <!--begin::Sidebar Menu-->
             <ul
@@ -89,41 +94,41 @@
               id="navigation"
             >
             <!-- Dashboard -->
-            <li class="nav-item">
+            <li class="nav-item ">
                 <router-link to="/" class="nav-link">
-                    <i class="nav-icon bi bi-speedometer2"></i>
-                    <p>Dashboard</p>
+                    <i  class="text-white nav-icon bi bi-speedometer2"></i>
+                    <p class="text-white">Dashboard</p>
                 </router-link>
             </li>
 
             <!-- Settings -->
             <li class="nav-item menu-open">
                 <a href="#" class="nav-link" @click.prevent="toggleSettings">
-                    <i class="nav-icon bi bi-gear"></i>
-                    <p>
+                    <i class="nav-icon bi bi-gear text-white"></i>
+                    <p class="text-white">
                         Settings
-                        <i class="nav-arrow bi bi-chevron-right"></i>
+                        <i class="nav-arrow bi bi-chevron-right text-white"></i>
                     </p>
                 </a>
 
-                <ul class="nav nav-treeview"  v-show="settingsOpen">
+                <ul class="nav nav-treeview "  v-show="settingsOpen">
 
-                    <li class="nav-item" :class="{ 'menu-open': settingsOpen }">
-                        <router-link to="/users" class="nav-link">
+                    <li class="nav-item " :class="{ 'menu-open': settingsOpen }">
+                        <router-link to="/users" class="nav-link text-white">
                             <i class="nav-icon bi bi-people"></i>
                             <p>Users</p>
                         </router-link>
                     </li>
 
                     <li class="nav-item">
-                        <router-link to="/colleges" class="nav-link">
+                        <router-link to="/colleges" class="nav-link text-white">
                             <i class="nav-icon bi bi-building"></i>
                             <p>Colleges</p>
                         </router-link>
                     </li>
 
                     <li class="nav-item">
-                        <router-link to="/outreach-programs" class="nav-link">
+                        <router-link to="/outreach-programs" class="nav-link text-white">
                             <i class="nav-icon bi bi-megaphone"></i>
                             <p>Outreach Programs</p>
                         </router-link>
@@ -132,7 +137,7 @@
                 </ul>
             </li>
               <li class="nav-item">
-                <a href="./generate/theme.html" class="nav-link">
+                <a href="./generate/theme.html" class="nav-link text-white">
                   <i class="nav-icon bi bi-palette"></i>
                   <p>Theme Generate</p>
                 </a>
@@ -154,12 +159,50 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  const settingsOpen = ref(false)
-  const toggleSidebar = () => {
-    document.body.classList.toggle('sidebar-collapse')
-  }
-  const toggleSettings = () => {
-    settingsOpen.value = !settingsOpen.value
-  }
+  import { ref, computed, onMounted, onUnmounted } from 'vue'
+    const isSidebarOpen = ref(false)
+    const settingsOpen = ref(false)
+    const windowWidth = ref(window.innerWidth)
+    const isMobile = computed(() => windowWidth.value < 992)
+    const handleResize = () => {
+        windowWidth.value = window.innerWidth
+    }
+    const toggleSidebar = () => {
+        isSidebarOpen.value = !isSidebarOpen.value
+
+        updateSidebarClasses()
+    }
+    const closeSidebar = () => {
+      alert('close sidebar')
+        isSidebarOpen.value = false
+
+        document.body.classList.remove('sidebar-open')
+        document.body.classList.remove('sidebar-collapse')
+    }
+    const toggleSettings = () => {
+        settingsOpen.value = !settingsOpen.value
+    }
+    const updateSidebarClasses = () => {
+        if (isMobile.value) {
+          document.body.classList.toggle(
+              'sidebar-open',
+              isSidebarOpen.value
+          )
+        } else {
+          document.body.classList.toggle(
+              'sidebar-collapse',
+              !isSidebarOpen.value
+          )
+        }
+    }
+
+    onMounted(() => {
+        // Initialize sidebar state based on window width
+        window.addEventListener('resize', handleResize)
+    })
+
+    onUnmounted(() => {
+        // Clean up the event listener when the component is unmounted
+        window.removeEventListener('resize', handleResize)
+    })
 </script>

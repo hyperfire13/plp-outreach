@@ -22,7 +22,7 @@ class UserService
     {
         return User::create($data)->load('role','college');
     }
-
+    //
     public function update(User $user, array $data)
     {
         if (empty($data['password'])) {
