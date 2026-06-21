@@ -1,299 +1,423 @@
 <template>
-  <MainLayout>
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Users</h4>
 
-        <button
-          v-if="canCreate"
-          class="btn btn-primary btn-sm"
-          @click="openCreate"
+    <MainLayout>
+
+        <CrudPage
+            title="Users"
+            add-label="Add User"
+            @create="openCreate"
         >
-          <i class="fas fa-plus me-1"></i> Add User
-        </button>
-      </div>
 
-      <div class="card-body">
+            <CrudTable
+                :columns="columns"
+                :rows="users.data || []"
+                @edit="openEdit"
+                @delete="remove"
+            />
 
-        <!-- TABLE -->
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>College</th>
-                <th width="170">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="user in users.data" :key="user.id">
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.role?.name }}</td>
-                <td>{{ user.college?.name }}</td>
-                <td>
-                  <button
-                    class="btn btn-sm btn-warning me-1"
-                    @click="openEdit(user)"
-                  >
-                    Edit
-                  </button>
+            <CrudPagination
+                :current-page="users.current_page || 1"
+                :last-page="users.last_page || 1"
+                :prev="!!users.prev_page_url"
+                :next="!!users.next_page_url"
+                @change="fetch"
+            />
 
-                  <button
-                    v-if="canDelete"
-                    class="btn btn-sm btn-danger"
-                    @click="remove(user.id)"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+        </CrudPage>
 
-              <tr v-if="!users.data || users.data.length === 0">
-                <td colspan="5" class="text-center text-muted">
-                  No users found.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <CrudModal
+            ref="modalRef"
+            :title="isEdit ? 'Edit User' : 'Create User'"
+            :fields="fields"
+            :form="form"
+            :errors="errors"
+            @submit="submit"
+        />
 
-        <!-- PAGINATION -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
-          <div>
-            Page {{ users.current_page || 1 }}
-            of {{ users.last_page || 1 }}
-          </div>
+    </MainLayout>
 
-          <div>
-            <button
-              class="btn btn-sm btn-secondary me-2"
-              :disabled="!users.prev_page_url"
-              @click="fetch(users.current_page - 1)"
-            >
-              Previous
-            </button>
-
-            <button
-              class="btn btn-sm btn-secondary"
-              :disabled="!users.next_page_url"
-              @click="fetch(users.current_page + 1)"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- USER MODAL -->
-    <div class="modal fade" tabindex="-1" ref="modalRef">
-      <div class="modal-dialog">
-        <div class="modal-content">
-
-          <div class="modal-header">
-            <h5 class="modal-title">
-              {{ isEdit ? 'Edit User' : 'Create User' }}
-            </h5>
-            <button type="button" class="btn-close" @click="closeModal"></button>
-          </div>
-
-          <div class="modal-body">
-
-            <div class="mb-3">
-              <label class="form-label">Name</label>
-              <input v-model="form.name" class="form-control" />
-              <small class="text-danger">{{ errors.name }}</small>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input v-model="form.email" class="form-control" />
-              <small class="text-danger">{{ errors.email }}</small>
-            </div>
-
-            <div class="mb-3" v-if="!isEdit">
-              <label class="form-label">Password</label>
-              <input v-model="form.password" type="password" class="form-control" />
-              <small class="text-danger">{{ errors.password }}</small>
-            </div>
-
-            <div class="mb-3" v-if="!isEdit">
-              <label class="form-label">Confirm Password</label>
-              <input v-model="form.password_confirmation" type="password" class="form-control" />
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Role</label>
-              <select v-model="form.role_id" class="form-control">
-                <option value="">Select Role</option>
-                <option v-for="role in roles" :key="role.id" :value="role.id">
-                  {{ role.name }}
-                </option>
-              </select>
-              <small class="text-danger">{{ errors.role_id }}</small>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">College</label>
-              <select v-model="form.college_id" class="form-control">
-                <option value="">Select College</option>
-                <option v-for="college in collegesList" :key="college.id" :value="college.id">
-                  {{ college.name }}
-                </option>
-              </select>
-            </div>
-
-          </div>
-
-          <div class="modal-footer">
-            <button class="btn btn-secondary" @click="closeModal">Cancel</button>
-            <button class="btn btn-primary" @click="submit">
-              {{ isEdit ? 'Update' : 'Save' }}
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-  </MainLayout>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
-import { Modal } from 'bootstrap'
+
+import { ref, reactive, onMounted } from 'vue'
+
 import MainLayout from '../components/layout/MainLayout.vue'
+
+import CrudPage from '../components/crud/CrudPage.vue'
+import CrudTable from '../components/crud/CrudTable.vue'
+import CrudPagination from '../components/crud/CrudPagination.vue'
+import CrudModal from '../components/crud/CrudModal.vue'
+
 import userService from '../services/userService'
+// import roleService from '../services/roleService'
 import collegeService from '../services/collegeService'
 import api from '../services/api'
-import { useAuthStore } from '../stores/auth'
+/*
+|--------------------------------------------------------------------------
+| TABLE DATA
+|--------------------------------------------------------------------------
+*/
 
-const auth = useAuthStore()
+const users = ref({
+    data: []
+})
 
-const users = ref({ data: [] })
 const roles = ref([])
-const collegesList = ref([])
+const colleges = ref([])
 
-const modalRef = ref(null)
-let modalInstance = null
+/*
+|--------------------------------------------------------------------------
+| MODAL
+|--------------------------------------------------------------------------
+*/
+
+const modalRef = ref()
 
 const isEdit = ref(false)
 const editingId = ref(null)
 
+/*
+|--------------------------------------------------------------------------
+| FORM
+|--------------------------------------------------------------------------
+*/
+
 const form = reactive({
-  name: '',
-  email: '',
-  password: '',
-  password_confirmation: '',
-  role_id: '',
-  college_id: ''
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    birthday: '',
+    contact_number: '',
+    email: '',
+    password: '',
+    role_id: '',
+    college_id: ''
 })
 
 const errors = reactive({})
 
-/* RBAC */
-const canCreate = computed(() =>
-  ['super_admin','college_admin'].includes(auth.role)
-)
+/*
+|--------------------------------------------------------------------------
+| TABLE COLUMNS
+|--------------------------------------------------------------------------
+*/
 
-const canDelete = computed(() =>
-  auth.role === 'super_admin'
-)
+const columns = [
 
-/* FETCH USERS */
+    {
+        key: 'full_name',
+        label: 'Full Name'
+    },
+
+    {
+        key: 'email',
+        label: 'Email'
+    },
+
+    {
+        key: 'contact_number',
+        label: 'Contact No.'
+    },
+
+    {
+        key: 'role_name',
+        label: 'Role'
+    },
+
+    {
+        key: 'college_name',
+        label: 'College'
+    }
+
+]
+
+/*
+|--------------------------------------------------------------------------
+| FORM FIELDS
+|--------------------------------------------------------------------------
+*/
+
+const fields = ref([])
+
+/*
+|--------------------------------------------------------------------------
+| FETCH USERS
+|--------------------------------------------------------------------------
+*/
+
 const fetch = async (page = 1) => {
-  const response = await userService.get(page)
-  users.value = response.data
+
+    try {
+
+        const response = await userService.get(page)
+
+        users.value = response.data
+
+    } catch (error) {
+
+        console.error(error)
+
+    }
+
 }
 
-/* FETCH ROLES */
+/*
+|--------------------------------------------------------------------------
+| LOAD DROPDOWNS
+|--------------------------------------------------------------------------
+*/
+
 const fetchRoles = async () => {
+    alert('role')
   const response = await api.get('/roles')
   roles.value = response.data
 }
 
-/* FETCH COLLEGES */
-const fetchColleges = async () => {
-  const response = await collegeService.get()
-  collegesList.value = response.data.data
+const loadDependencies = async () => {
+
+    const [
+        collegesResponse
+    ] = await Promise.all([
+        // roleService.all(),
+        collegeService.get()
+    ])
+
+
+    // roles.value = rolesResponse.data
+    colleges.value = collegesResponse.data.data
+
+    fields.value = [
+
+        {
+            key: 'first_name',
+            label: 'First Name',
+            type: 'text'
+        },
+
+        {
+            key: 'middle_name',
+            label: 'Middle Name',
+            type: 'text'
+        },
+
+        {
+            key: 'last_name',
+            label: 'Last Name',
+            type: 'text'
+        },
+
+        {
+            key: 'birthday',
+            label: 'Birthday',
+            type: 'date'
+        },
+
+        {
+            key: 'contact_number',
+            label: 'Contact Number',
+            type: 'text'
+        },
+
+        {
+            key: 'email',
+            label: 'Email',
+            type: 'email'
+        },
+
+        {
+            key: 'password',
+            label: 'Password',
+            type: 'password'
+        },
+
+        {
+            key: 'role_id',
+            label: 'Role',
+            type: 'select',
+            options: roles.value.map(role => ({
+                value: role.id,
+                label: role.name
+            }))
+        },
+
+        {
+            key: 'college_id',
+            label: 'College',
+            type: 'select',
+            options: colleges.value.map(college => ({
+                value: college.id,
+                label: college.name
+            }))
+        }
+
+    ]
+
 }
 
-/* MODAL */
+/*
+|--------------------------------------------------------------------------
+| CREATE
+|--------------------------------------------------------------------------
+*/
+
 const openCreate = () => {
-  resetForm()
-  isEdit.value = false
-  modalInstance.show()
+
+    resetForm()
+
+    isEdit.value = false
+
+    modalRef.value.open()
+
 }
+
+/*
+|--------------------------------------------------------------------------
+| EDIT
+|--------------------------------------------------------------------------
+*/
 
 const openEdit = (user) => {
-  resetForm()
-  isEdit.value = true
-  editingId.value = user.id
 
-  form.name = user.name
-  form.email = user.email
-  form.role_id = user.role_id
-  form.college_id = user.college_id
+    resetForm()
 
-  modalInstance.show()
+    isEdit.value = true
+
+    editingId.value = user.id
+
+    Object.assign(form, {
+
+        first_name: user.first_name,
+        middle_name: user.middle_name,
+        last_name: user.last_name,
+        birthday: user.birthday,
+        contact_number: user.contact_number,
+        email: user.email,
+        role_id: user.role_id,
+        college_id: user.college_id
+
+    })
+
+    modalRef.value.open()
+
 }
 
-const closeModal = () => {
-  modalInstance.hide()
-}
+/*
+|--------------------------------------------------------------------------
+| SAVE
+|--------------------------------------------------------------------------
+*/
 
-/* SUBMIT */
 const submit = async () => {
-  clearErrors()
 
-  try {
-    if (isEdit.value) {
-      await userService.update(editingId.value, form)
-    } else {
-      await userService.store(form)
+    clearErrors()
+
+    try {
+
+        if (isEdit.value) {
+
+            await userService.update(
+                editingId.value,
+                form
+            )
+
+        } else {
+
+            await userService.store(form)
+
+        }
+
+        modalRef.value.close()
+
+        fetch()
+
+    } catch (error) {
+
+        if (error.response?.data?.errors) {
+
+            Object.assign(
+                errors,
+                error.response.data.errors
+            )
+
+        }
+
     }
 
-    closeModal()
+}
+
+/*
+|--------------------------------------------------------------------------
+| DELETE
+|--------------------------------------------------------------------------
+*/
+
+const remove = async (user) => {
+
+    if (
+        !confirm(
+            `Delete ${user.full_name}?`
+        )
+    ) {
+        return
+    }
+
+    await userService.delete(user.id)
+
     fetch()
-  } catch (error) {
-    if (error.response?.data?.errors) {
-      Object.assign(errors, error.response.data.errors)
-    }
-  }
+
 }
 
-/* DELETE */
-const remove = async (id) => {
-  if (!confirm('Delete this user?')) return
-  await userService.delete(id)
-  fetch()
-}
-
-/* HELPERS */
-const resetForm = () => {
-  form.name = ''
-  form.email = ''
-  form.password = ''
-  form.password_confirmation = ''
-  form.role_id = ''
-  form.college_id = ''
-  editingId.value = null
-  clearErrors()
-}
+/*
+|--------------------------------------------------------------------------
+| HELPERS
+|--------------------------------------------------------------------------
+*/
 
 const clearErrors = () => {
-  Object.keys(errors).forEach(key => delete errors[key])
+
+    Object.keys(errors)
+        .forEach(
+            key => delete errors[key]
+        )
+
 }
 
-/* LIFECYCLE */
-onMounted(() => {
-  modalInstance = new Modal(modalRef.value)
-  fetch()
-  fetchRoles()
-  fetchColleges()
+const resetForm = () => {
+
+    Object.assign(form, {
+
+        first_name: '',
+        middle_name: '',
+        last_name: '',
+        birthday: '',
+        contact_number: '',
+        email: '',
+        password: '',
+        role_id: '',
+        college_id: ''
+
+    })
+
+    editingId.value = null
+
+    clearErrors()
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| INIT
+|--------------------------------------------------------------------------
+*/
+
+onMounted(async () => {
+
+    await loadDependencies()
+
+    await fetch()
+    await fetchRoles();
+
 })
+
 </script>
