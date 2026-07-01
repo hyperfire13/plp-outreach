@@ -34,7 +34,7 @@
 
                     <label class="form-label">
 
-                        {{ field.label }}
+                        {{ field.label }} {{ field.options }}
 
                     </label>
 

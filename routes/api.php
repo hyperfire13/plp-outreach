@@ -6,6 +6,7 @@ use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\CommunityController;
+use App\Http\Controllers\API\OutreachProgramController;
 
 Route::prefix('v1')->group(function () {
 
@@ -54,9 +55,10 @@ Route::prefix('v1')->group(function () {
         |--------------------------------------------------------------------------
         */
 
+        Route::get('/colleges/all', [CollegeController::class, 'all']);
         Route::apiResource('colleges', CollegeController::class);
         Route::apiResource('communities', CommunityController::class);
-
+        Route::apiResource('outreach-programs', OutreachProgramController::class);
     });
 
 });

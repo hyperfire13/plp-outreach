@@ -13,6 +13,17 @@ class CollegeService
             ->paginate($perPage);
     }
 
+    public function all()
+    {
+        return College::select(
+                'id',
+                'name'
+            )
+            ->where('is_active', true) // if you have this column later
+            ->orderBy('name')
+            ->get();
+    }
+
     public function store(array $data)
     {
         return College::create($data);

@@ -67,4 +67,11 @@ class CollegeController extends Controller
             'message' => 'College deleted successfully.'
         ]);
     }
+
+    public function all(): JsonResponse
+    {
+        return response()->json(
+            $this->service->all()
+        );
+    }
 }

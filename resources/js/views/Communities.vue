@@ -231,28 +231,28 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
-import { Modal } from 'bootstrap'
-import MainLayout from '../components/layout/MainLayout.vue'
-import communityService from '../services/communityService'
-import { useAuthStore } from '../stores/auth'
+  import { ref, reactive, onMounted, computed } from 'vue'
+  import { Modal } from 'bootstrap'
+  import MainLayout from '../components/layout/MainLayout.vue'
+  import communityService from '../services/communityService'
+  import { useAuthStore } from '../stores/auth'
 
-const auth = useAuthStore()
+  const auth = useAuthStore()
 
-const communities = ref({ data: [] })
-const modalRef = ref(null)
-let modalInstance = null
+  const communities = ref({ data: [] })
+  const modalRef = ref(null)
+  let modalInstance = null
 
-const isEdit = ref(false)
-const editingId = ref(null)
+  const isEdit = ref(false)
+  const editingId = ref(null)
 
-const filters = reactive({
+  const filters = reactive({
   search: '',
   urban_rural: '',
   disaster_risk_level: ''
-})
+  })
 
-const form = reactive({
+  const form = reactive({
   name: '',
   region: '',
   population: '',
@@ -262,77 +262,77 @@ const form = reactive({
   avg_income: '',
   urban_rural: '',
   disaster_risk_level: ''
-})
+  })
 
-const errors = reactive({})
+  const errors = reactive({})
 
-const canManage = computed(() =>
+  const canManage = computed(() =>
   ['super_admin','college_admin'].includes(auth.role)
-)
+  )
 
-const fetch = async (page = 1) => {
+  const fetch = async (page = 1) => {
   const response = await communityService.get(page, filters)
   communities.value = response.data
-}
+  }
 
-const openCreate = () => {
+  const openCreate = () => {
   resetForm()
   isEdit.value = false
   modalInstance.show()
-}
+  }
 
-const openEdit = (community) => {
+  const openEdit = (community) => {
   resetForm()
   isEdit.value = true
   editingId.value = community.id
   Object.assign(form, community)
   modalInstance.show()
-}
+  }
 
-const closeModal = () => modalInstance.hide()
+  const closeModal = () => modalInstance.hide()
 
-const submit = async () => {
+  const submit = async () => {
   clearErrors()
   try {
-    if (isEdit.value) {
+      if (isEdit.value) {
       await communityService.update(editingId.value, form)
-    } else {
+      } else {
       await communityService.store(form)
-    }
-    closeModal()
-    fetch()
+      }
+      closeModal()
+      fetch()
   } catch (error) {
-    if (error.response?.data?.errors) {
+      if (error.response?.data?.errors) {
       Object.assign(errors, error.response.data.errors)
-    }
+      }
   }
-}
+  }
 
-const remove = async (id) => {
+  const remove = async (id) => {
   if (!confirm('Delete this community?')) return
   await communityService.delete(id)
   fetch()
-}
+  }
 
-const resetForm = () => {
+  const resetForm = () => {
   Object.keys(form).forEach(key => form[key] = '')
   editingId.value = null
   clearErrors()
-}
+  }
 
-const clearErrors = () => {
+  const clearErrors = () => {
   Object.keys(errors).forEach(key => delete errors[key])
-}
+  }
 
-const riskBadgeClass = (risk) => {
+  const riskBadgeClass = (risk) => {
   if (risk === 'high') return 'bg-danger'
   if (risk === 'medium') return 'bg-warning'
   if (risk === 'low') return 'bg-success'
   return 'bg-secondary'
-}
+  }
 
-onMounted(() => {
+  onMounted(() => {
   modalInstance = new Modal(modalRef.value)
   fetch()
-})
+  })
 </script>

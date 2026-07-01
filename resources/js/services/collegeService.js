@@ -4,6 +4,10 @@ export default {
   get(page = 1) {
     return api.get(`/colleges?page=${page}`)
   },
+  all() {
+    return api.get('/colleges/all')
+  },
+
   store(data) {
     return api.post('/colleges', data)
   },
