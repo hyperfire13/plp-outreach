@@ -77,6 +77,7 @@ const form = reactive({
     contact_number: '',
     email: '',
     password: '',
+    password_confirmation: '',
     role_id: '',
     college_id: ''
 })
@@ -193,6 +194,15 @@ const fields = computed(() => [
         {
             key: 'password',
             label: 'Password',
+            type: 'password',
+            required: !isEdit.value,
+            toggleVisibility: true
+        },
+        {
+            key: 'password_confirmation',
+            label: isEdit.value
+                ? 'Confirm Password'
+                : 'Confirm Password',
             type: 'password'
         },
         {
@@ -268,7 +278,9 @@ const openEdit = (user) => {
         contact_number: user.contact_number,
         email: user.email,
         role_id: user.role_id,
-        college_id: user.college_id
+        college_id: user.college_id,
+        password: '',
+        password_confirmation: '',
 
     })
 
@@ -368,6 +380,7 @@ const resetForm = () => {
         contact_number: '',
         email: '',
         password: '',
+        password_confirmation: '',
         role_id: '',
         college_id: ''
 

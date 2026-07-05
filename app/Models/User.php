@@ -2,28 +2,26 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
-
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role_id',
-        'college_id',
         'first_name',
         'middle_name',
         'last_name',
         'birthday',
         'contact_number',
+        'email',
+        'password',
+        'role_id',
+        'college_id',
     ];
 
     protected $hidden = [
@@ -32,12 +30,15 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
+        'birthday' => 'date:Y-m-d',
         'password' => 'hashed',
     ];
 
     protected $appends = [
         'age',
-        'full_name'
+        'full_name',
+        'role_name',
+        'college_name',
     ];
 
     public function role()
@@ -50,16 +51,31 @@ class User extends Authenticatable
         return $this->belongsTo(College::class);
     }
 
-    public function getAgeAttribute()
+    public function getAgeAttribute(): ?int
     {
-        if (!$this->birthday) {
-            return null;
-        }
-        return Carbon::parse($this->birthday)->age;
+        return $this->birthday
+            ? Carbon::parse($this->birthday)->age
+            : null;
     }
 
-    public function getFullNameAttribute()
+    public function getFullNameAttribute(): string
     {
-        return trim("{$this->first_name} {$this->last_name}");
+        return collect([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name,
+        ])
+            ->filter()
+            ->implode(' ');
+    }
+
+    public function getRoleNameAttribute(): ?string
+    {
+        return $this->role?->name;
+    }
+
+    public function getCollegeNameAttribute(): ?string
+    {
+        return $this->college?->name;
     }
 }

@@ -22,6 +22,11 @@ const routes = [
     path: '/colleges',
     component: Colleges,
     meta: { requiresAuth: true }
+  },
+{
+    path: '/outreach-programs',
+    name: 'outreach-programs',
+    component: () => import('../views/OutreachPrograms.vue')
   }
 ]
 

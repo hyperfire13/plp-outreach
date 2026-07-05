@@ -1,125 +1,188 @@
 <template>
+    <div
+        class="modal fade"
+        tabindex="-1"
+        ref="modalRef"
+    >
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
 
-<div
-    class="modal fade"
-    tabindex="-1"
-    ref="modalRef"
->
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {{ title }}
+                    </h5>
 
-    <div class="modal-dialog">
+                    <button
+                        type="button"
+                        class="btn-close"
+                        @click="close"
+                    />
+                </div>
 
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    {{ title }}
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    @click="close"
-                />
-
-            </div>
-
-            <div class="modal-body">
-
-                <div
-                    v-for="field in fields"
-                    :key="field.key"
-                    class="mb-3"
-                >
-
-                    <label class="form-label">
-
-                        {{ field.label }} {{ field.options }}
-
-                    </label>
-
-                    <input
-                        v-if="field.type !== 'select'"
-                        v-model="form[field.key]"
-                        :type="field.type"
-                        class="form-control"
-                    >
-
-                    <select
-                        v-else
-                        v-model="form[field.key]"
-                        class="form-select"
-                    >
-
-                        <option
-                            v-for="option in field.options"
-                            :key="option.value"
-                            :value="option.value"
+                <div class="modal-body">
+                    <div class="row">
+                        <div
+                            v-for="field in fields"
+                            :key="field.key"
+                            class="mb-3"
+                            :class="field.col || 'col-md-6 col-12'"
                         >
-                            {{ option.label }}
-                        </option>
+                            <label class="form-label">
+                                {{ field.label }}
 
-                    </select>
+                                <span
+                                    v-if="field.required"
+                                    class="text-danger"
+                                >
+                                    *
+                                </span>
+                            </label>
 
-                    <small class="text-danger">
+                            <input
+                                v-if="isInput(field)"
+                                v-model="form[field.key]"
+                                :type="field.type"
+                                class="form-control"
+                                :placeholder="field.placeholder || field.label"
+                            >
 
-                        {{ errors[field.key] }}
+                            <textarea
+                                v-else-if="field.type === 'textarea'"
+                                v-model="form[field.key]"
+                                class="form-control"
+                                :rows="field.rows || 3"
+                                :placeholder="field.placeholder || field.label"
+                            />
 
-                    </small>
+                            <select
+                                v-else-if="field.type === 'select'"
+                                v-model="form[field.key]"
+                                class="form-select"
+                            >
+                                <option value="">
+                                    {{ field.placeholder || `Select ${field.label}` }}
+                                </option>
 
+                                <option
+                                    v-for="option in field.options || []"
+                                    :key="option.value"
+                                    :value="option.value"
+                                >
+                                    {{ option.label }}
+                                </option>
+                            </select>
+
+                            <div
+                                v-else-if="field.type === 'checkbox'"
+                                class="form-check"
+                            >
+                                <input
+                                    v-model="form[field.key]"
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    :id="field.key"
+                                >
+
+                                <label
+                                    class="form-check-label"
+                                    :for="field.key"
+                                >
+                                    {{ field.checkboxLabel || field.label }}
+                                </label>
+                            </div>
+
+                            <small
+                                v-if="errors[field.key]"
+                                class="text-danger"
+                            >
+                                {{ getError(field.key) }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button
+                        class="btn btn-secondary"
+                        type="button"
+                        @click="close"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        type="button"
+                        @click="$emit('submit')"
+                    >
+                        {{ submitLabel }}
+                    </button>
                 </div>
 
             </div>
-
-            <div class="modal-footer">
-
-                <button
-                    class="btn btn-secondary"
-                    @click="close"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    class="btn btn-primary"
-                    @click="$emit('submit')"
-                >
-                    Save
-                </button>
-
-            </div>
-
         </div>
-
     </div>
-
-</div>
-
 </template>
 
 <script setup>
-
 import { Modal } from 'bootstrap'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-const modalRef = ref()
-let modal
+const modalRef = ref(null)
+let modal = null
 
-defineProps({
-
-    title: String,
-
-    fields: Array,
-
-    form: Object,
-
-    errors: Object
-
+const props = defineProps({
+    title: {
+        type: String,
+        required: true
+    },
+    fields: {
+        type: Array,
+        default: () => []
+    },
+    form: {
+        type: Object,
+        required: true
+    },
+    errors: {
+        type: Object,
+        default: () => ({})
+    },
+    submitLabel: {
+        type: String,
+        default: 'Save'
+    }
 })
 
-const close = () => modal.hide()
+defineEmits(['submit'])
 
-const open = () => modal.show()
+const inputTypes = [
+    'text',
+    'email',
+    'password',
+    'number',
+    'date',
+    'time',
+    'datetime-local'
+]
+
+const isInput = (field) => inputTypes.includes(field.type)
+
+const getError = (key) => {
+    const error = props.errors[key]
+
+    return Array.isArray(error)
+        ? error[0]
+        : error
+}
+
+const open = () => {
+    modal?.show()
+}
+
+const close = () => {
+    modal?.hide()
+}
 
 defineExpose({
     open,
@@ -127,7 +190,13 @@ defineExpose({
 })
 
 onMounted(() => {
-    modal = new Modal(modalRef.value)
+    modal = new Modal(modalRef.value, {
+        backdrop: 'static',
+        keyboard: false
+    })
 })
 
+onBeforeUnmount(() => {
+    modal?.dispose()
+})
 </script>
