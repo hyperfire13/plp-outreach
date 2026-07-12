@@ -14,7 +14,9 @@ class OutreachProgramController extends Controller
 {
     public function __construct(
         private OutreachProgramService $service
-    ) {}
+    ) {
+        $this->authorizeResource(OutreachProgram::class, 'outreach_program');
+    }
 
     public function index(Request $request): JsonResponse
     {

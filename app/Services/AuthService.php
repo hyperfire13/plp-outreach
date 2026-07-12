@@ -21,12 +21,14 @@ class AuthService
 
         // Revoke old tokens (optional security measure)
         $user->tokens()->delete();
+        $expiresAt = now()->addHours(1);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
         return [
             'user' => $user->load('role','college'),
-            'token' => $token
+            'token' => $token,
+            'expires_at' => $expiresAt,
         ];
     }
 
