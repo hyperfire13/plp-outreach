@@ -81,4 +81,10 @@ class OutreachProgramController extends Controller
         ]);
 
     }
+    public function all(): JsonResponse
+    {
+        return response()->json(
+            $this->service->all()
+        );
+}
 }

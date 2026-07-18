@@ -7,9 +7,15 @@ use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\CommunityController;
 use App\Http\Controllers\API\OutreachProgramController;
+use App\Http\Controllers\API\OutreachProjectController;
+
 
 Route::prefix('v1')->group(function () {
-
+    Route::fallback(function () {
+        return response()->json([
+            'message' => 'Endpoint not found.'
+        ], 404);
+    });
     /*
     |--------------------------------------------------------------------------
     | AUTH ROUTES
@@ -59,6 +65,12 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('colleges', CollegeController::class);
         Route::apiResource('communities', CommunityController::class);
         Route::apiResource('outreach-programs', OutreachProgramController::class);
+
+        // Route::get(
+        //     '/outreach-programs/all',
+        //     [OutreachProgramController::class, 'all']
+        // );
+        Route::apiResource('outreach-projects', OutreachProjectController::class);
     });
 
 });

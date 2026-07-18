@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class OutreachProgram extends Model
 {
@@ -16,12 +16,17 @@ class OutreachProgram extends Model
         'description',
         'typical_budget',
         'typical_duration_days',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
-        'typical_budget' => 'float',
+        'typical_budget' => 'decimal:2',
         'typical_duration_days' => 'integer',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
+
+    public function projects()
+    {
+        return $this->hasMany(OutreachProject::class);
+    }
 }

@@ -58,4 +58,8 @@ class College extends Model
             'outreach_program_id'
         );
     }
+    public function outreachProjects()
+    {
+        return $this->hasMany(OutreachProject::class);
+    }
 }

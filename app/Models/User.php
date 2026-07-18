@@ -78,4 +78,85 @@ class User extends Authenticatable
     {
         return $this->college?->name;
     }
+
+    public function createdOutreachProjects()
+    {
+        return $this->hasMany(
+            OutreachProject::class,
+            'created_by'
+        );
+    }
+
+    public function coordinatedOutreachProjects()
+    {
+        return $this->hasMany(
+            OutreachProject::class,
+            'coordinator_id'
+        );
+    }
+
+    public function outreachProjectMemberships()
+    {
+        return $this->belongsToMany(
+            OutreachProject::class,
+            'outreach_project_members'
+        )
+            ->withPivot([
+                'member_role',
+                'status',
+                'joined_at',
+            ])
+            ->withTimestamps();
+    }
+
+    public function communityPartnerProjects()
+    {
+        return $this->belongsToMany(
+            OutreachProject::class,
+            'outreach_project_community_partners'
+        )
+            ->withPivot([
+                'organization_name',
+                'contact_person',
+                'status',
+            ])
+            ->withTimestamps();
+    }
+
+    public function evaluationAssignments()
+    {
+        return $this->belongsToMany(
+            OutreachProject::class,
+            'outreach_project_evaluators'
+        )
+            ->withPivot([
+                'evaluation_type',
+                'status',
+                'assigned_at',
+                'completed_at',
+            ])
+            ->withTimestamps();
+    }
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array(
+            $this->role?->name,
+            $roles,
+            true
+        );
+    }
+
+    public function isCaloAdministrator(): bool
+    {
+        return $this->hasRole(
+            'calo_administrator',
+            'super_admin'
+        );
+    }
+
+    public function belongsToCollege(?int $collegeId): bool
+    {
+        return $collegeId !== null
+            && $this->college_id === $collegeId;
+    }
 }

@@ -26,4 +26,18 @@ class OutreachProgramService
     {
         $program->delete();
     }
+    public function all()
+{
+    return OutreachProgram::query()
+        ->select([
+            'id',
+            'name',
+            'category',
+            'typical_budget',
+            'typical_duration_days',
+        ])
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+}
 }
