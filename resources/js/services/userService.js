@@ -24,6 +24,12 @@ export default {
 
   show(id) {
     return api.get(`/users/${id}`)
-  }
+  },
+  async all(params = {}) {
+    const response = await api.get("/users/all", {
+        params,
+    });
 
+    return response.data;
+  }
 }

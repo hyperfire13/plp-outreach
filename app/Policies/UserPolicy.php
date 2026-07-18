@@ -3,32 +3,70 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Policies\Concerns\HandlesRoleAuthorization;
 
 class UserPolicy
 {
-    public function viewAny(User $authUser)
+    use HandlesRoleAuthorization;
+
+    public function viewAny(User $authUser): bool
     {
-        return in_array($authUser->role->name, ['super_admin', 'college_admin']);
+        return $this->hasRole(
+            $authUser,
+            'super_admin',
+            'calo_administrator',
+            'college_admin'
+        );
     }
 
-    public function create(User $authUser)
+    public function view(User $authUser, User $user): bool
     {
-        return in_array($authUser->role->name, ['super_admin', 'college_admin']);
-    }
-
-    public function update(User $authUser, User $user)
-    {
-        if ($authUser->role->name === 'super_admin') return true;
-
-        if ($authUser->role->name === 'college_admin') {
-            return $authUser->college_id === $user->college_id;
+        if ($this->isAdministrator($authUser)) {
+            return true;
         }
 
-        return false;
+        if ($this->hasRole($authUser, 'college_admin')) {
+            return $this->sameCollege(
+                $authUser,
+                $user->college_id
+            );
+        }
+
+        return $authUser->is($user);
     }
 
-    public function delete(User $authUser, User $user)
+    public function create(User $authUser): bool
     {
-        return $authUser->role->name === 'super_admin';
+        return $this->hasRole(
+            $authUser,
+            'super_admin',
+            'calo_administrator',
+            'college_admin'
+        );
+    }
+
+    public function update(User $authUser, User $user): bool
+    {
+        if ($this->isAdministrator($authUser)) {
+            return true;
+        }
+
+        if ($this->hasRole($authUser, 'college_admin')) {
+            return $this->sameCollege(
+                $authUser,
+                $user->college_id
+            );
+        }
+
+        return $authUser->is($user);
+    }
+
+    public function delete(User $authUser, User $user): bool
+    {
+        if ($authUser->is($user)) {
+            return false;
+        }
+
+        return $this->isAdministrator($authUser);
     }
 }

@@ -133,6 +133,27 @@
                             <p>Outreach Programs</p>
                         </router-link>
                     </li>
+                    <li
+                        v-if="canManageProgramCatalog"
+                        class="nav-item"
+                    >
+                        <RouterLink
+                            to="/outreach-programs"
+                            class="nav-link"
+                        >
+                            <i class="nav-icon bi bi-collection"></i>
+                            <p>Program Catalog</p>
+                        </RouterLink>
+                    </li>
+                    <li class="nav-item">
+                        <RouterLink
+                            to="/outreach-projects"
+                            class="nav-link"
+                        >
+                            <i class="nav-icon bi bi-briefcase"></i>
+                            <p>Outreach Projects</p>
+                        </RouterLink>
+                    </li>
 
                 </ul>
             </li>
@@ -160,6 +181,7 @@
 
 <script setup>
   import { ref, computed, onMounted, onUnmounted } from 'vue'
+    import { useAuthorization } from '@/composables/useAuthorization'
     const isSidebarOpen = ref(false)
     const settingsOpen = ref(false)
     const windowWidth = ref(window.innerWidth)
@@ -167,9 +189,11 @@
     const handleResize = () => {
         windowWidth.value = window.innerWidth
     }
+    const {
+        canManageProgramCatalog,
+    } = useAuthorization();
     const toggleSidebar = () => {
         isSidebarOpen.value = !isSidebarOpen.value
-
         updateSidebarClasses()
     }
     const closeSidebar = () => {

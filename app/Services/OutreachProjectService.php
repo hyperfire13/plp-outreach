@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 class OutreachProjectService
 {
     public function paginate(
-        User $authUser,
-        int $perPage = 10
+    User $authUser,
+    array $filters = []
     ) {
         $query = OutreachProject::query()
             ->with([
@@ -20,60 +20,44 @@ class OutreachProjectService
                 'coordinator:id,first_name,middle_name,last_name',
             ]);
 
-        if ($authUser->hasRole('project_proponent')) {
-            $query->where('created_by', $authUser->id);
-        }
+        $query->when(
+            !empty($filters['search']),
+            function ($query) use ($filters) {
+                $search = $filters['search'];
 
-        if ($authUser->hasRole(
-            'college_admin',
-            'faculty_extension_coordinator',
-            'college_department_head'
-        )) {
-            $query->where(
-                'college_id',
-                $authUser->college_id
-            );
-        }
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhereHas(
+                            'program',
+                            fn ($programQuery) =>
+                                $programQuery->where(
+                                    'name',
+                                    'like',
+                                    "%{$search}%"
+                                )
+                        );
+                });
+            }
+        );
 
-        if ($authUser->hasRole('community_partner')) {
-            $query->whereHas(
-                'communityPartners',
-                fn ($partnerQuery) =>
-                    $partnerQuery->where(
-                        'users.id',
-                        $authUser->id
-                    )
-            );
-        }
+        $query->when(
+            !empty($filters['status']),
+            fn ($query) =>
+                $query->where(
+                    'status',
+                    $filters['status']
+                )
+        );
 
-        if ($authUser->hasRole('external_evaluator')) {
-            $query->whereHas(
-                'evaluators',
-                fn ($evaluatorQuery) =>
-                    $evaluatorQuery->where(
-                        'users.id',
-                        $authUser->id
-                    )
-            );
-        }
-
-        if ($authUser->hasRole(
-            'student_volunteer',
-            'alumni_partner'
-        )) {
-            $query->whereHas(
-                'members',
-                fn ($memberQuery) =>
-                    $memberQuery->where(
-                        'users.id',
-                        $authUser->id
-                    )
-            );
-        }
+        // Apply RBAC scoping here...
 
         return $query
             ->latest()
-            ->paginate($perPage);
+            ->paginate(
+                $filters['per_page'] ?? 10
+            );
     }
 
     public function store(

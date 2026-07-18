@@ -30,10 +30,16 @@ class OutreachProjectController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string'],
+            'per_page' => ['nullable', 'integer', 'min:5', 'max:100'],
+        ]);
+
         return response()->json(
             $this->service->paginate(
                 $request->user(),
-                $request->integer('per_page', 10)
+                $filters
             )
         );
     }
