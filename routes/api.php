@@ -8,6 +8,11 @@ use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\CommunityController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
+use App\Http\Controllers\Api\PriorityNeedController;
+use App\Http\Controllers\Api\SurveyQuestionController;
+use App\Http\Controllers\Api\SurveyResponseController;
+use App\Http\Controllers\Api\SurveyTemplateController;
+
 
 
 Route::prefix('v1')->group(function () {
@@ -71,6 +76,22 @@ Route::prefix('v1')->group(function () {
         //     [OutreachProgramController::class, 'all']
         // );
         Route::apiResource('outreach-projects', OutreachProjectController::class);
+        Route::apiResource(
+            'survey-templates',
+            SurveyTemplateController::class
+        );
+        Route::apiResource(
+            'survey-responses',
+            SurveyResponseController::class
+        );
+        Route::get(
+            'priority-needs/summary',
+            [PriorityNeedController::class, 'summary']
+        );
+        Route::get(
+            'priority-needs',
+            [PriorityNeedController::class, 'index']
+        );
     });
 
 });

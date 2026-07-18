@@ -1,55 +1,107 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Community;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use App\Services\CommunityService;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreCommunityRequest;
-use App\Http\Requests\UpdateCommunityRequest;
+use App\Http\Requests\Community\StoreCommunityRequest;
+use App\Http\Requests\Community\UpdateCommunityRequest;
+use App\Models\Community;
+use App\Services\CommunityService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Throwable;
 
 class CommunityController extends Controller
 {
-    public function __construct(private CommunityService $service)
-    {
-        $this->middleware('auth:sanctum');
+    public function __construct(
+        private readonly CommunityService $service
+    ) {
     }
 
     public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            $this->service->paginate()
-        );
+        return response()->json([
+            'message' => 'Communities retrieved successfully.',
+            'data' => $this->service->paginate(
+                $request->only([
+                    'search',
+                    'is_active',
+                    'community_type',
+                    'per_page',
+                ])
+            ),
+        ]);
     }
 
-    public function store(StoreCommunityRequest $request): JsonResponse
+    public function all(): JsonResponse
     {
-        return response()->json(
-            $this->service->store($request->validated()),
-            201
-        );
+        return response()->json([
+            'message' => 'Active communities retrieved successfully.',
+            'data' => $this->service->allActive(),
+        ]);
     }
 
-    public function show(Community $community): JsonResponse
-    {
-        return response()->json($community);
+    public function store(
+        StoreCommunityRequest $request
+    ): JsonResponse {
+        try {
+            $community = $this->service->store(
+                $request->validated(),
+                $request->user()?->id
+            );
+
+            return response()->json([
+                'message' => 'Community created successfully.',
+                'data' => $community,
+            ], 201);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to create the community.',
+            ], 500);
+        }
     }
 
-    public function update(UpdateCommunityRequest $request, Community $community): JsonResponse
-    {
-        return response()->json(
-            $this->service->update($community, $request->validated())
-        );
+    public function show(
+        Community $community
+    ): JsonResponse {
+        return response()->json([
+            'message' => 'Community retrieved successfully.',
+            'data' => $this->service->find($community),
+        ]);
     }
 
-    public function destroy(Community $community): JsonResponse
-    {
+    public function update(
+        UpdateCommunityRequest $request,
+        Community $community
+    ): JsonResponse {
+        try {
+            $community = $this->service->update(
+                $community,
+                $request->validated()
+            );
+
+            return response()->json([
+                'message' => 'Community updated successfully.',
+                'data' => $community,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to update the community.',
+            ], 500);
+        }
+    }
+
+    public function destroy(
+        Community $community
+    ): JsonResponse {
         $this->service->delete($community);
 
         return response()->json([
-            'message' => 'Community deleted successfully.'
+            'message' => 'Community deleted successfully.',
         ]);
     }
 }
