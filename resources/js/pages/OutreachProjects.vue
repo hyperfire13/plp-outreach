@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import MainLayout from "@/components/layouts/MainLayout.vue";
+// import MainLayout from "@/components/layouts/MainLayout.vue";
+import MainLayout from '../components/layout/MainLayout.vue'
 import CrudPage from "@/components/crud/CrudPage.vue";
 import CrudTable from "@/components/crud/CrudTable.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";

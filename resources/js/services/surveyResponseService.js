@@ -1,15 +1,12 @@
-import api from './api'
 
-const endpoint = "/v1/communities";
+import api from "@/api/axios";
+
+const endpoint = "/v1/survey-responses";
 
 export default {
 
     getList(params = {}) {
         return api.get(endpoint, { params });
-    },
-
-    getAll() {
-        return api.get(`${endpoint}/all`);
     },
 
     get(id) {

@@ -68,6 +68,10 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/colleges/all', [CollegeController::class, 'all']);
         Route::apiResource('colleges', CollegeController::class);
+        // Route::get(
+        //     'communities/all',
+        //     [CommunityController::class, 'all']
+        // );
         Route::apiResource('communities', CommunityController::class);
         Route::apiResource('outreach-programs', OutreachProgramController::class);
 
@@ -79,6 +83,10 @@ Route::prefix('v1')->group(function () {
         Route::apiResource(
             'survey-templates',
             SurveyTemplateController::class
+        );
+        Route::apiResource(
+            'survey-questions',
+            SurveyQuestionController::class
         );
         Route::apiResource(
             'survey-responses',

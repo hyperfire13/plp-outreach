@@ -14,16 +14,16 @@
               </a>
             </li>
             <li class="nav-item d-none d-md-block">
-              <a href="#" class="nav-link">Home</a>
+              <a href="#" class="nav-link text-white">Home</a>
             </li>
             <li class="nav-item d-none d-md-block">
-              <a href="#" class="nav-link">Contact</a>
+              <a href="#" class="nav-link text-white">Contact</a>
             </li>
           </ul>
           <ul class="navbar-nav ms-auto">
             <!--begin::Navbar Search-->
             <li class="nav-item">
-              <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+              <a class="nav-link text-white" data-widget="navbar-search" href="#" role="button">
                 <i class="bi bi-search"></i>
               </a>
             </li>
@@ -31,7 +31,7 @@
 
             <!--begin::Fullscreen Toggle-->
             <li class="nav-item">
-              <a class="nav-link" href="#" data-lte-toggle="fullscreen">
+              <a class="nav-link text-white" href="#" data-lte-toggle="fullscreen">
                 <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
                 <i data-lte-icon="minimize" class="bi bi-fullscreen-exit" style="display: none"></i>
               </a>
@@ -95,7 +95,7 @@
             >
             <!-- Dashboard -->
             <li class="nav-item ">
-                <router-link to="/" class="nav-link">
+                <router-link to="/" class="nav-link text-white">
                     <i  class="text-white nav-icon bi bi-speedometer2"></i>
                     <p class="text-white">Dashboard</p>
                 </router-link>
@@ -103,7 +103,7 @@
 
             <!-- Settings -->
             <li class="nav-item menu-open">
-                <a href="#" class="nav-link" @click.prevent="toggleSettings">
+                <a href="#" class="nav-link text-white" @click.prevent="toggleSettings">
                     <i class="nav-icon bi bi-gear text-white"></i>
                     <p class="text-white">
                         Settings
@@ -133,26 +133,77 @@
                             <p>Outreach Programs</p>
                         </router-link>
                     </li>
-                    <li
+                    <!-- <li
                         v-if="canManageProgramCatalog"
                         class="nav-item"
                     >
                         <RouterLink
                             to="/outreach-programs"
-                            class="nav-link"
+                            class="nav-link text-white"
                         >
                             <i class="nav-icon bi bi-collection"></i>
                             <p>Program Catalog</p>
                         </RouterLink>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <RouterLink
                             to="/outreach-projects"
-                            class="nav-link"
+                            class="nav-link text-white"
                         >
                             <i class="nav-icon bi bi-briefcase"></i>
                             <p>Outreach Projects</p>
                         </RouterLink>
+                    </li>
+                    <li class="nav-header text-white">COMMUNITY ASSESSMENT</li>
+
+                    <li class="nav-item">
+                    <RouterLink
+                        :to="{ name: 'admin-communities' }"
+                        class="nav-link text-white"
+                    >
+                        <i class="nav-icon bi bi-buildings"></i>
+                        <p>Communities</p>
+                    </RouterLink>
+                    </li>
+
+                    <li class="nav-item">
+                    <RouterLink
+                        :to="{ name: 'admin-survey-templates' }"
+                        class="nav-link text-white"
+                    >
+                        <i class="nav-icon bi bi-ui-checks-grid"></i>
+                        <p>Survey Templates</p>
+                    </RouterLink>
+                    </li>
+
+                    <li class="nav-item">
+                    <RouterLink
+                        :to="{ name: 'admin-survey-questions' }"
+                        class="nav-link text-white"
+                    >
+                        <i class="nav-icon bi bi-list-check"></i>
+                        <p>Survey Questions</p>
+                    </RouterLink>
+                    </li>
+
+                    <li class="nav-item">
+                    <RouterLink
+                        :to="{ name: 'admin-survey-responses' }"
+                        class="nav-link text-white"
+                    >
+                        <i class="nav-icon bi bi-clipboard-data"></i>
+                        <p>Survey Responses</p>
+                    </RouterLink>
+                    </li>
+
+                    <li class="nav-item">
+                    <RouterLink
+                        :to="{ name: 'admin-priority-needs' }"
+                        class="nav-link text-white"
+                    >
+                        <i class="nav-icon bi bi-bar-chart"></i>
+                        <p>Priority Needs</p>
+                    </RouterLink>
                     </li>
 
                 </ul>

@@ -76,6 +76,86 @@ const routes = [
         },
     },
     {
+  path: "/communities",
+  name: "admin-communities",
+  component: () =>
+    import("@/views/admin/Communities.vue"),
+  meta: {
+    title: "Communities",
+    requiresAuth: true,
+  },
+    },
+    {
+    path: "/survey-templates",
+    name: "admin-survey-templates",
+    component: () =>
+        import("@/views/admin/SurveyTemplates.vue"),
+    meta: {
+        title: "Survey Templates",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/survey-questions",
+    name: "admin-survey-questions",
+    component: () =>
+        import("@/views/admin/SurveyQuestions.vue"),
+    meta: {
+        title: "Survey Questions",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/survey-responses",
+    name: "admin-survey-responses",
+    component: () =>
+        import("@/views/admin/SurveyResponses.vue"),
+    meta: {
+        title: "Survey Responses",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/survey-responses/create",
+    name: "admin-survey-responses-create",
+    component: () =>
+        import("@/views/admin/SurveyResponseCreate.vue"),
+    meta: {
+        title: "Conduct Survey",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/survey-responses/:id/edit",
+    name: "admin-survey-responses-edit",
+    component: () =>
+        import("@/views/admin/SurveyResponseCreate.vue"),
+    meta: {
+        title: "Edit Survey Response",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/survey-responses/:id",
+    name: "admin-survey-responses-view",
+    component: () =>
+        import("@/views/admin/SurveyResponseView.vue"),
+    meta: {
+        title: "Survey Response",
+        requiresAuth: true,
+    },
+    },
+    {
+    path: "/priority-needs",
+    name: "admin-priority-needs",
+    component: () =>
+        import("@/views/admin/PriorityNeeds.vue"),
+    meta: {
+        title: "Priority Needs",
+        requiresAuth: true,
+    },
+    },
+    {
         path: "/forbidden",
         name: "forbidden",
         component: () =>
