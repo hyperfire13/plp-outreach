@@ -4,9 +4,39 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 
 class UserService
 {
+    public function all(array $filters = []): Collection
+    {
+        return User::query()
+            ->with([
+                'role:id,name',
+                'college:id,name',
+            ])
+            ->when(
+                !empty($filters['role']),
+                function ($query) use ($filters) {
+                    $query->whereHas('role', function ($roleQuery) use ($filters) {
+                        $roleQuery->where('name', $filters['role']);
+                    });
+                }
+            )
+            ->when(
+                !empty($filters['college_id']),
+                function ($query) use ($filters) {
+                    $query->where(
+                        'college_id',
+                        $filters['college_id']
+                    );
+                }
+            )
+            // ->where('is_active', true)
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+    }
     public function paginate($authUser, int $perPage = 10)
     {
         $query = User::with(['role:id,name', 'college:id,name'])

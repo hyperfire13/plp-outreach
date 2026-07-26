@@ -12,9 +12,37 @@ use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
+
     public function __construct(private UserService $service)
     {
-        $this->authorizeResource(User::class, 'user');
+        $this->authorizeResource(User::class, 'user',
+        [
+            'except' => ['all'],
+        ]);
+    }
+
+    public function all(Request $request): JsonResponse
+    {
+        $this->authorize('viewAny', User::class);
+        try {
+            $users = $this->service->all(
+                $request->only([
+                    'role',
+                    'college_id',
+                ])
+            );
+
+            return response()->json([
+                'message' => 'Users retrieved successfully.',
+                'data' => $users,
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 500);
+        }
     }
 
     public function index(Request $request): JsonResponse
@@ -22,6 +50,14 @@ class UserController extends Controller
         return response()->json(
             $this->service->paginate($request->user())
         );
+    }
+
+    public function show(User $user): JsonResponse
+    {
+        // return response()->json($user->load([
+        //     'role:id,name',
+        //     'college:id,name',
+        // ]));
     }
 
     public function store(StoreUserRequest $request): JsonResponse

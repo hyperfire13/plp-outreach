@@ -57,7 +57,7 @@ Route::prefix('v1')->group(function () {
         | USER MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
+        Route::get('/users/all', [UserController::class, 'all']);
         Route::apiResource('users', UserController::class);
 
         /*

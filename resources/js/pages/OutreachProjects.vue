@@ -11,7 +11,7 @@ import ProjectStatusBadge from "@/components/outreach-projects/ProjectStatusBadg
 import outreachProjectService from "@/services/outreachProjectService";
 import outreachProgramService from "@/services/outreachProgramService";
 import collegeService from "@/services/collegeService";
-import userService from "@/services/userService";
+import userService from "../services/userService.js";
 
 import { useAuthStore } from "@/stores/auth";
 import { useApiErrors } from "@/composables/useApiErrors";
