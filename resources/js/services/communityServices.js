@@ -1,6 +1,6 @@
 import api from './api'
 
-const endpoint = "/v1/communities";
+const endpoint = "/communities";
 
 export default {
 

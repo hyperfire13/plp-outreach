@@ -1,6 +1,6 @@
 import api from "@/api/axios";
 
-const endpoint = "/v1/priority-needs";
+const endpoint = "/priority-needs";
 
 export default {
 

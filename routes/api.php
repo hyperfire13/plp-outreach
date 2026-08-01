@@ -73,12 +73,10 @@ Route::prefix('v1')->group(function () {
         //     [CommunityController::class, 'all']
         // );
         Route::apiResource('communities', CommunityController::class);
+        Route::get('/outreach-programs/all', [OutreachProgramController::class, 'all'] );
         Route::apiResource('outreach-programs', OutreachProgramController::class);
 
-        // Route::get(
-        //     '/outreach-programs/all',
-        //     [OutreachProgramController::class, 'all']
-        // );
+
         Route::apiResource('outreach-projects', OutreachProjectController::class);
         Route::apiResource(
             'survey-templates',

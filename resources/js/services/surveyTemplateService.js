@@ -1,5 +1,5 @@
 import api from "@/api/axios";
-const endpoint = "/v1/survey-templates";
+const endpoint = "/survey-templates";
 
 export default {
 
