@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import SurveyResponseForm from "@/components/survey/SurveyResponseForm.vue";
-import { communityApi } from "@/api/communities";
+import MainLayout from "@/components/layout/MainLayout.vue";
+import communityService from "@/services/communityServices";
 import surveyTemplateService from "@/services/surveyTemplateService";
 import surveyResponseService from "@/services/surveyResponseService";
 
@@ -26,7 +27,7 @@ async function loadTemplate(id) {
     return;
   }
 
-  const response = await surveyTemplateService.show(id);
+  const response = await surveyTemplateService.get(id);
 
   selectedTemplate.value = response.data.data;
 }
@@ -34,8 +35,8 @@ async function loadTemplate(id) {
 async function loadOptions() {
   const [communityResponse, templateResponse] =
     await Promise.all([
-      communityApi.all(),
-      surveyTemplateService.list({
+      communityService.getAll(),
+      surveyTemplateService.getList({
         status: "published",
         per_page: 100,
       }),
@@ -50,7 +51,7 @@ async function loadResponse() {
     return;
   }
 
-  const response = await surveyResponseService.show(
+  const response = await surveyResponseService.get(
     responseId.value
   );
 
@@ -105,8 +106,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="content">
-    <div class="container-fluid">
+  <MainLayout>
+    <section class="content">
+      <div class="container-fluid">
       <div class="mb-3">
         <h1 class="h3 mb-1">
           {{ isEditing ? "Edit Survey Response" : "Conduct Survey" }}
@@ -133,6 +135,7 @@ onMounted(async () => {
         @save-draft="save"
         @submit-survey="save"
       />
-    </div>
-  </section>
+      </div>
+    </section>
+  </MainLayout>
 </template>

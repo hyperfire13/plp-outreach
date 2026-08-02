@@ -23,6 +23,8 @@ class PriorityNeedController extends Controller
                     'community_id',
                     'need',
                     'priority_rank',
+                    'year',
+                    'month',
                     'per_page',
                 ])
             ),

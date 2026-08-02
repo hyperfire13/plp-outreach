@@ -4,7 +4,10 @@
         tabindex="-1"
         ref="modalRef"
     >
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div
+            class="modal-dialog modal-dialog-centered"
+            :class="`modal-${size}`"
+        >
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -20,7 +23,9 @@
                 </div>
 
                 <div class="modal-body">
-                    <div class="row">
+                    <slot v-if="$slots.default" />
+
+                    <div v-else class="row">
                         <div
                             v-for="field in fields"
                             :key="field.key"
@@ -102,21 +107,25 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button
-                        class="btn btn-secondary"
-                        type="button"
-                        @click="close"
-                    >
-                        Cancel
-                    </button>
+                    <slot v-if="$slots.footer" name="footer" />
 
-                    <button
-                        class="btn btn-primary"
-                        type="button"
-                        @click="$emit('submit')"
-                    >
-                        {{ submitLabel }}
-                    </button>
+                    <template v-else>
+                        <button
+                            class="btn btn-secondary"
+                            type="button"
+                            @click="close"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            class="btn btn-primary"
+                            type="button"
+                            @click="$emit('submit')"
+                        >
+                            {{ submitLabel }}
+                        </button>
+                    </template>
                 </div>
 
             </div>
@@ -151,10 +160,14 @@ const props = defineProps({
     submitLabel: {
         type: String,
         default: 'Save'
+    },
+    size: {
+        type: String,
+        default: 'lg'
     }
 })
 
-defineEmits(['submit'])
+const emit = defineEmits(['submit', 'hidden'])
 
 const inputTypes = [
     'text',
@@ -184,6 +197,10 @@ const close = () => {
     modal?.hide()
 }
 
+const handleHidden = () => {
+    emit('hidden')
+}
+
 defineExpose({
     open,
     close
@@ -194,9 +211,18 @@ onMounted(() => {
         backdrop: 'static',
         keyboard: false
     })
+
+    modalRef.value.addEventListener(
+        'hidden.bs.modal',
+        handleHidden
+    )
 })
 
 onBeforeUnmount(() => {
+    modalRef.value?.removeEventListener(
+        'hidden.bs.modal',
+        handleHidden
+    )
     modal?.dispose()
 })
 </script>

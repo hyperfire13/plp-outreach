@@ -1,103 +1,138 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\CollegeController;
-use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\CommunityController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
-use App\Http\Controllers\Api\PriorityNeedController;
-use App\Http\Controllers\Api\SurveyQuestionController;
-use App\Http\Controllers\Api\SurveyResponseController;
-use App\Http\Controllers\Api\SurveyTemplateController;
+use App\Http\Controllers\API\PriorityNeedController;
+use App\Http\Controllers\API\RoleController;
+use App\Http\Controllers\API\SurveyQuestionController;
+use App\Http\Controllers\API\SurveyResponseController;
+use App\Http\Controllers\API\SurveyTemplateController;
+use App\Http\Controllers\API\UserController;
+use Illuminate\Support\Facades\Route;
 
+$roleMiddleware = static fn (string $group): string =>
+    'role:' . implode(',', config("role_access.{$group}"));
 
-
-Route::prefix('v1')->group(function () {
-    Route::fallback(function () {
-        return response()->json([
-            'message' => 'Endpoint not found.'
-        ], 404);
-    });
-    /*
-    |--------------------------------------------------------------------------
-    | AUTH ROUTES
-    |--------------------------------------------------------------------------
-    */
-
+Route::prefix('v1')->group(function () use ($roleMiddleware) {
     Route::middleware('throttle:5,1')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/register', [AuthController::class, 'register']);
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | PROTECTED ROUTES
-    |--------------------------------------------------------------------------
-    */
+    Route::middleware('auth:sanctum')->group(
+        function () use ($roleMiddleware) {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/me', [AuthController::class, 'me']);
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+            Route::middleware($roleMiddleware('user_managers'))
+                ->group(function () {
+                    Route::get('/roles', [RoleController::class, 'index']);
+                    Route::get('/users/all', [UserController::class, 'all']);
+                    Route::apiResource('users', UserController::class);
+                });
 
-        // Auth
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me', [AuthController::class, 'me']);
+            Route::get('/colleges/all', [CollegeController::class, 'all'])
+                ->middleware($roleMiddleware('project_viewers'));
+            Route::middleware($roleMiddleware('college_managers'))
+                ->group(function () {
+                    Route::apiResource('colleges', CollegeController::class);
+                });
 
-        /*
-        |--------------------------------------------------------------------------
-        | ROLE MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
+            Route::get(
+                '/outreach-programs/all',
+                [OutreachProgramController::class, 'all']
+            )->middleware($roleMiddleware('program_lookup_users'));
 
-        Route::get('/roles', [RoleController::class, 'index']);
+            Route::middleware($roleMiddleware('program_viewers'))
+                ->group(function () {
+                    Route::apiResource(
+                        'outreach-programs',
+                        OutreachProgramController::class
+                    );
+                });
 
-        /*
-        |--------------------------------------------------------------------------
-        | USER MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/users/all', [UserController::class, 'all']);
-        Route::apiResource('users', UserController::class);
+            Route::middleware($roleMiddleware('project_viewers'))
+                ->group(function () {
+                    Route::apiResource(
+                        'outreach-projects',
+                        OutreachProjectController::class
+                    );
+                });
 
-        /*
-        |--------------------------------------------------------------------------
-        | COLLEGE MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
+            Route::get(
+                '/communities/all',
+                [CommunityController::class, 'all']
+            )->middleware($roleMiddleware('community_lookup_users'));
 
-        Route::get('/colleges/all', [CollegeController::class, 'all']);
-        Route::apiResource('colleges', CollegeController::class);
-        // Route::get(
-        //     'communities/all',
-        //     [CommunityController::class, 'all']
-        // );
-        Route::apiResource('communities', CommunityController::class);
-        Route::get('/outreach-programs/all', [OutreachProgramController::class, 'all'] );
-        Route::apiResource('outreach-programs', OutreachProgramController::class);
+            Route::middleware($roleMiddleware('community_managers'))
+                ->group(function () {
+                    Route::apiResource(
+                        'communities',
+                        CommunityController::class
+                    );
+                });
 
+            Route::middleware($roleMiddleware('survey_respondents'))
+                ->group(function () {
+                    Route::get(
+                        '/survey-templates',
+                        [SurveyTemplateController::class, 'index']
+                    )->name('survey-templates.index');
+                    Route::get(
+                        '/survey-templates/{survey_template}',
+                        [SurveyTemplateController::class, 'show']
+                    )->name('survey-templates.show');
+                });
 
-        Route::apiResource('outreach-projects', OutreachProjectController::class);
-        Route::apiResource(
-            'survey-templates',
-            SurveyTemplateController::class
-        );
-        Route::apiResource(
-            'survey-questions',
-            SurveyQuestionController::class
-        );
-        Route::apiResource(
-            'survey-responses',
-            SurveyResponseController::class
-        );
-        Route::get(
-            'priority-needs/summary',
-            [PriorityNeedController::class, 'summary']
-        );
-        Route::get(
-            'priority-needs',
-            [PriorityNeedController::class, 'index']
-        );
+            Route::middleware($roleMiddleware('survey_designers'))
+                ->group(function () {
+                    Route::post(
+                        '/survey-templates',
+                        [SurveyTemplateController::class, 'store']
+                    )->name('survey-templates.store');
+                    Route::match(
+                        ['put', 'patch'],
+                        '/survey-templates/{survey_template}',
+                        [SurveyTemplateController::class, 'update']
+                    )->name('survey-templates.update');
+                    Route::delete(
+                        '/survey-templates/{survey_template}',
+                        [SurveyTemplateController::class, 'destroy']
+                    )->name('survey-templates.destroy');
+
+                    Route::apiResource(
+                        'survey-questions',
+                        SurveyQuestionController::class
+                    );
+                });
+
+            Route::middleware($roleMiddleware('survey_respondents'))
+                ->group(function () {
+                    Route::apiResource(
+                        'survey-responses',
+                        SurveyResponseController::class
+                    );
+                });
+
+            Route::middleware($roleMiddleware('priority_need_viewers'))
+                ->group(function () {
+                    Route::get(
+                        '/priority-needs/summary',
+                        [PriorityNeedController::class, 'summary']
+                    );
+                    Route::get(
+                        '/priority-needs',
+                        [PriorityNeedController::class, 'index']
+                    );
+                });
+        }
+    );
+
+    Route::fallback(function () {
+        return response()->json([
+            'message' => 'Endpoint not found.',
+        ], 404);
     });
-
 });

@@ -2,7 +2,8 @@
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
-import communityService from "@/services/communityService";
+import MainLayout from "@/components/layout/MainLayout.vue";
+import communityService from "@/services/communityServices";
 import surveyResponseService from "@/services/surveyResponseService";
 import surveyTemplateService from "@/services/surveyTemplateService";
 
@@ -40,8 +41,8 @@ function formatDate(value) {
 async function fetchOptions() {
   const [communityResponse, templateResponse] =
     await Promise.all([
-      communityService.all(),
-      surveyTemplateService.list({
+      communityService.getAll(),
+      surveyTemplateService.getList({
         per_page: 100,
       }),
     ]);
@@ -56,7 +57,7 @@ async function fetchData(page = 1) {
   try {
     filters.page = page;
 
-    const response = await surveyResponseService.list(filters);
+    const response = await surveyResponseService.getList(filters);
 
     rows.value = response.data.data.data;
     pagination.value = response.data.data;
@@ -111,8 +112,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="content">
-    <div class="container-fluid">
+  <MainLayout>
+    <section class="content">
+      <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h1 class="h3 mb-1">Survey Responses</h1>
@@ -303,11 +305,15 @@ onMounted(async () => {
 
         <div class="card-footer">
           <CrudPagination
-            :pagination="pagination"
+            :current-page="pagination.current_page"
+            :last-page="pagination.last_page"
+            :prev="Boolean(pagination.prev_page_url)"
+            :next="Boolean(pagination.next_page_url)"
             @change="fetchData"
           />
         </div>
       </div>
-    </div>
-  </section>
+      </div>
+    </section>
+  </MainLayout>
 </template>

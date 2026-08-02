@@ -17,6 +17,10 @@ export function useAuthorization() {
         return roles.includes(roleName.value);
     };
 
+    const canAccessRoles = (roles = []) => {
+        return roles.length === 0 || hasRole(...roles);
+    };
+
     const isAdministrator = computed(() =>
         hasRole(
             ROLES.SUPER_ADMIN,
@@ -48,6 +52,7 @@ export function useAuthorization() {
     return {
         roleName,
         hasRole,
+        canAccessRoles,
         isAdministrator,
         canManageProgramCatalog,
         canCreateProject,

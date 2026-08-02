@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import SurveyResponseForm from "@/components/survey/SurveyResponseForm.vue";
+import MainLayout from "@/components/layout/MainLayout.vue";
 import surveyResponseService from "@/services/surveyResponseService";
 
 
@@ -12,7 +13,7 @@ const loading = ref(true);
 
 onMounted(async () => {
   try {
-    const response = await surveyResponseService.show(
+    const response = await surveyResponseService.get(
       route.params.id
     );
 
@@ -24,8 +25,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="content">
-    <div class="container-fluid">
+  <MainLayout>
+    <section class="content">
+      <div class="container-fluid">
       <div class="mb-3">
         <h1 class="h3 mb-1">Survey Response</h1>
         <p class="text-muted mb-0">
@@ -50,6 +52,7 @@ onMounted(async () => {
         :initial-data="responseData"
         readonly
       />
-    </div>
-  </section>
+      </div>
+    </section>
+  </MainLayout>
 </template>

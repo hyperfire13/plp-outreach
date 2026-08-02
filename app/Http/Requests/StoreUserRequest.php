@@ -2,17 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only super_admin and college_admin can create users
-        return in_array($this->user()->role->name, [
-            'super_admin',
-            'college_admin'
-        ]);
+        return $this->user()?->can('create', User::class) ?? false;
     }
 
     public function rules(): array

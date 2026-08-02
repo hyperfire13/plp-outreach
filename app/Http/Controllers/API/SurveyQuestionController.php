@@ -9,6 +9,7 @@ use App\Models\SurveyQuestion;
 use App\Services\SurveyQuestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class SurveyQuestionController extends Controller
@@ -38,14 +39,16 @@ class SurveyQuestionController extends Controller
         StoreSurveyQuestionRequest $request
     ): JsonResponse {
         try {
-            $question = $this->service->store(
+            $surveyQuestion = $this->service->store(
                 $request->validated()
             );
 
             return response()->json([
                 'message' => 'Survey question created successfully.',
-                'data' => $question,
+                'data' => $surveyQuestion,
             ], 201);
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (Throwable $exception) {
             report($exception);
 
@@ -69,15 +72,17 @@ class SurveyQuestionController extends Controller
         SurveyQuestion $surveyQuestion
     ): JsonResponse {
         try {
-            $question = $this->service->update(
+            $surveyQuestion = $this->service->update(
                 $surveyQuestion,
                 $request->validated()
             );
 
             return response()->json([
                 'message' => 'Survey question updated successfully.',
-                'data' => $question,
+                'data' => $surveyQuestion,
             ]);
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (Throwable $exception) {
             report($exception);
 

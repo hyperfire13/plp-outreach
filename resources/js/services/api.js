@@ -34,7 +34,7 @@ api.interceptors.response.use(
     loading.stop()
 
     if (error.response && error.response.status === 401) {
-      auth.logout()
+      auth.forceLogout()
     }
 
     return Promise.reject(error)
