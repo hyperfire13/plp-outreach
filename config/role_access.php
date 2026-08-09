@@ -83,4 +83,39 @@ return [
         'community_partner',
         'monitoring_evaluation_team',
     ],
+
+    'engagement_viewers' => [
+        'super_admin',
+        'calo_administrator',
+        'college_admin',
+        'coordinator',
+        'project_proponent',
+        'faculty_extension_coordinator',
+        'college_department_head',
+        'community_partner',
+        'external_evaluator',
+        'student_volunteer',
+        'alumni_partner',
+        'monitoring_evaluation_team',
+    ],
+
+    'engagement_encoders' => [
+        'super_admin',
+        'calo_administrator',
+        'college_admin',
+        'coordinator',
+        'project_proponent',
+        'faculty_extension_coordinator',
+    ],
+
+    'engagement_reviewers' => [
+        'super_admin',
+        'calo_administrator',
+    ],
+
+    'engagement_analytics_viewers' => [
+        'super_admin',
+        'calo_administrator',
+        'monitoring_evaluation_team',
+    ],
 ];

@@ -231,6 +231,32 @@
                     <p>Priority Needs</p>
                   </RouterLink>
                 </li>
+
+                <li v-if="hasEngagementAccess" class="nav-header text-white">
+                  <b>COMMUNITY ENGAGEMENT</b>
+                </li>
+                <li v-if="canViewEngagements" class="nav-item">
+                  <RouterLink
+                    :to="{ name: 'admin-engagement-records' }"
+                    class="nav-link text-white"
+                    active-class="active"
+                    @click="closeSidebarOnMobile"
+                  >
+                    <i class="nav-icon bi bi-journal-check"></i>
+                    <p>Engagement Records</p>
+                  </RouterLink>
+                </li>
+                <li v-if="canViewEngagements" class="nav-item">
+                  <RouterLink
+                    :to="{ name: 'engagement-profile-me' }"
+                    class="nav-link text-white"
+                    active-class="active"
+                    @click="closeSidebarOnMobile"
+                  >
+                    <i class="nav-icon bi bi-person-badge"></i>
+                    <p>My Engagement Profile</p>
+                  </RouterLink>
+                </li>
               </ul>
             </li>
           </ul>
@@ -287,6 +313,9 @@ const canManageSurveyResponses = computed(() =>
 const canViewPriorityNeeds = computed(() =>
   canAccessRoles(ROLE_GROUPS.PRIORITY_NEED_VIEWERS),
 );
+const canViewEngagements = computed(() =>
+  canAccessRoles(ROLE_GROUPS.ENGAGEMENT_VIEWERS),
+);
 
 const hasSystemSettingsAccess = computed(() =>
   canManageUsers.value || canManageColleges.value,
@@ -300,10 +329,14 @@ const hasCommunityAssessmentAccess = computed(() =>
   canManageSurveyResponses.value ||
   canViewPriorityNeeds.value,
 );
+const hasEngagementAccess = computed(() =>
+  canViewEngagements.value,
+);
 const hasSettingsAccess = computed(() =>
   hasSystemSettingsAccess.value ||
   hasOutreachAccess.value ||
-  hasCommunityAssessmentAccess.value,
+  hasCommunityAssessmentAccess.value ||
+  hasEngagementAccess.value,
 );
 
 const currentUserName = computed(() => {
@@ -337,6 +370,9 @@ const settingsRouteNames = [
   "admin-survey-responses-edit",
   "admin-survey-responses-view",
   "admin-priority-needs",
+  "admin-engagement-records",
+  "engagement-profile-me",
+  "engagement-profile-view",
 ];
 
 const isSettingsActive = computed(() =>

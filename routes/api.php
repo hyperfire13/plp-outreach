@@ -3,6 +3,8 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\CommunityController;
+use App\Http\Controllers\API\EngagementProfileController;
+use App\Http\Controllers\API\EngagementRecordController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
 use App\Http\Controllers\API\PriorityNeedController;
@@ -13,8 +15,7 @@ use App\Http\Controllers\API\SurveyTemplateController;
 use App\Http\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
-$roleMiddleware = static fn (string $group): string =>
-    'role:' . implode(',', config("role_access.{$group}"));
+$roleMiddleware = static fn (string $group): string => 'role:'.implode(',', config("role_access.{$group}"));
 
 Route::prefix('v1')->group(function () use ($roleMiddleware) {
     Route::middleware('throttle:5,1')->group(function () {
@@ -125,6 +126,63 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                     Route::get(
                         '/priority-needs',
                         [PriorityNeedController::class, 'index']
+                    );
+                });
+
+            Route::middleware($roleMiddleware('engagement_viewers'))
+                ->group(function () {
+                    Route::get(
+                        '/engagement-records/options',
+                        [EngagementRecordController::class, 'options']
+                    );
+                    Route::get(
+                        '/engagement-profiles/me',
+                        [EngagementProfileController::class, 'me']
+                    );
+                    Route::get(
+                        '/engagement-profiles/{user}',
+                        [EngagementProfileController::class, 'show']
+                    );
+                    Route::get(
+                        '/engagement-records',
+                        [EngagementRecordController::class, 'index']
+                    )->name('engagement-records.index');
+                    Route::get(
+                        '/engagement-records/{engagement_record}',
+                        [EngagementRecordController::class, 'show']
+                    )->name('engagement-records.show');
+                });
+
+            Route::middleware($roleMiddleware('engagement_encoders'))
+                ->group(function () {
+                    Route::post(
+                        '/engagement-records',
+                        [EngagementRecordController::class, 'store']
+                    )->name('engagement-records.store');
+                    Route::match(
+                        ['put', 'patch'],
+                        '/engagement-records/{engagement_record}',
+                        [EngagementRecordController::class, 'update']
+                    )->name('engagement-records.update');
+                    Route::delete(
+                        '/engagement-records/{engagement_record}',
+                        [EngagementRecordController::class, 'destroy']
+                    )->name('engagement-records.destroy');
+                    Route::post(
+                        '/engagement-records/{engagement_record}/submit',
+                        [EngagementRecordController::class, 'submit']
+                    );
+                });
+
+            Route::middleware($roleMiddleware('engagement_reviewers'))
+                ->group(function () {
+                    Route::post(
+                        '/engagement-records/{engagement_record}/approve',
+                        [EngagementRecordController::class, 'approve']
+                    );
+                    Route::post(
+                        '/engagement-records/{engagement_record}/reject',
+                        [EngagementRecordController::class, 'reject']
                     );
                 });
         }

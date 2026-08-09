@@ -148,6 +148,39 @@ const routes = [
     },
     },
     {
+        path: "/engagement-records",
+        name: "admin-engagement-records",
+        component: () =>
+            import("@/views/admin/EngagementRecords.vue"),
+        meta: {
+            title: "Engagement Records",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
+    },
+    {
+        path: "/engagement-profile",
+        name: "engagement-profile-me",
+        component: () =>
+            import("@/views/admin/EngagementProfile.vue"),
+        meta: {
+            title: "My Engagement Profile",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
+    },
+    {
+        path: "/engagement-profiles/:userId",
+        name: "engagement-profile-view",
+        component: () =>
+            import("@/views/admin/EngagementProfile.vue"),
+        meta: {
+            title: "Engagement Profile",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
+    },
+    {
         path: "/forbidden",
         name: "forbidden",
         component: () =>
