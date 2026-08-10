@@ -232,10 +232,29 @@
                   </RouterLink>
                 </li>
 
-                <li v-if="hasEngagementAccess" class="nav-header text-white">
-                  <b>COMMUNITY ENGAGEMENT</b>
-                </li>
-                <li v-if="canViewEngagements" class="nav-item">
+              </ul>
+            </li>
+
+            <li
+              v-if="hasEngagementAccess"
+              class="nav-item"
+              :class="{ 'menu-open': engagementOpen }"
+            >
+              <a
+                href="#"
+                class="nav-link text-white"
+                :class="{ active: isEngagementActive }"
+                @click.prevent="engagementOpen = !engagementOpen"
+              >
+                <i class="nav-icon bi bi-people-fill"></i>
+                <p>
+                  Community Engagement
+                  <i class="nav-arrow bi bi-chevron-right"></i>
+                </p>
+              </a>
+
+              <ul v-show="engagementOpen" class="nav nav-treeview">
+                <li class="nav-item">
                   <RouterLink
                     :to="{ name: 'admin-engagement-records' }"
                     class="nav-link text-white"
@@ -246,7 +265,7 @@
                     <p>Engagement Records</p>
                   </RouterLink>
                 </li>
-                <li v-if="canViewEngagements" class="nav-item">
+                <li class="nav-item">
                   <RouterLink
                     :to="{ name: 'engagement-profile-me' }"
                     class="nav-link text-white"
@@ -285,6 +304,7 @@ const isSidebarOpen = ref(false);
 const isSidebarCollapsed = ref(false);
 const windowWidth = ref(window.innerWidth);
 const settingsOpen = ref(false);
+const engagementOpen = ref(false);
 const signingOut = ref(false);
 
 const isMobile = computed(() => windowWidth.value < 992);
@@ -335,8 +355,7 @@ const hasEngagementAccess = computed(() =>
 const hasSettingsAccess = computed(() =>
   hasSystemSettingsAccess.value ||
   hasOutreachAccess.value ||
-  hasCommunityAssessmentAccess.value ||
-  hasEngagementAccess.value,
+  hasCommunityAssessmentAccess.value,
 );
 
 const currentUserName = computed(() => {
@@ -370,6 +389,9 @@ const settingsRouteNames = [
   "admin-survey-responses-edit",
   "admin-survey-responses-view",
   "admin-priority-needs",
+];
+
+const engagementRouteNames = [
   "admin-engagement-records",
   "engagement-profile-me",
   "engagement-profile-view",
@@ -377,6 +399,9 @@ const settingsRouteNames = [
 
 const isSettingsActive = computed(() =>
   settingsRouteNames.includes(route.name),
+);
+const isEngagementActive = computed(() =>
+  engagementRouteNames.includes(route.name),
 );
 
 function updateSidebarClasses() {
@@ -442,6 +467,10 @@ watch(
   () => {
     if (isSettingsActive.value) {
       settingsOpen.value = true;
+    }
+
+    if (isEngagementActive.value) {
+      engagementOpen.value = true;
     }
   },
   { immediate: true },

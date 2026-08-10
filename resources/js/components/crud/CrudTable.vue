@@ -2,7 +2,7 @@
 
     <div class="table-responsive">
 
-        <table class="table table-bordered table-hover align-middle">
+        <table class="table table-bordered table-hover align-middle mb-0">
 
             <thead class="table-light">
 
@@ -15,7 +15,7 @@
                         {{ column.label }}
                     </th>
 
-                    <th width="160">
+                    <th v-if="showActions" width="160" class="text-end">
                         Actions
                     </th>
 
@@ -25,8 +25,17 @@
 
             <tbody>
 
+                <tr v-if="loading">
+                    <td
+                        :colspan="columns.length + (showActions ? 1 : 0)"
+                        class="text-center py-5"
+                    >
+                        <span class="spinner-border text-primary" role="status" />
+                    </td>
+                </tr>
+
                 <tr
-                    v-for="row in rows"
+                    v-for="row in loading ? [] : rows"
                     :key="row.id"
                 >
 
@@ -34,10 +43,20 @@
                         v-for="column in columns"
                         :key="column.key"
                     >
-                        {{ row[column.key] }}
+                        <slot
+                            :name="`cell-${column.key}`"
+                            :row="row"
+                            :value="row[column.key]"
+                        >
+                            {{ row[column.key] }}
+                        </slot>
                     </td>
 
-                    <td>
+                    <td v-if="showActions" class="text-end text-nowrap">
+
+                        <slot v-if="$slots.actions" name="actions" :row="row" />
+
+                        <template v-else>
 
                         <button
                             class="btn btn-warning btn-sm me-1"
@@ -53,17 +72,19 @@
                             Delete
                         </button>
 
+                        </template>
+
                     </td>
 
                 </tr>
 
-                <tr v-if="!rows.length">
+                <tr v-if="!loading && !rows.length">
 
                     <td
-                        :colspan="columns.length + 1"
-                        class="text-center text-muted"
+                        :colspan="columns.length + (showActions ? 1 : 0)"
+                        class="text-center text-muted py-4"
                     >
-                        No records found.
+                        {{ emptyMessage }}
                     </td>
 
                 </tr>
@@ -77,7 +98,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed, useSlots } from 'vue'
+
+const props = defineProps({
     columns: {
         type: Array,
         required: true
@@ -86,8 +109,26 @@ defineProps({
     rows: {
         type: Array,
         default: () => []
+    },
+
+    loading: {
+        type: Boolean,
+        default: false
+    },
+
+    emptyMessage: {
+        type: String,
+        default: 'No records found.'
+    },
+
+    actions: {
+        type: Boolean,
+        default: true
     }
 })
+
+const slots = useSlots()
+const showActions = computed(() => props.actions || Boolean(slots.actions))
 
 defineEmits([
     'edit',

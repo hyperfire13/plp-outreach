@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-// import MainLayout from "@/components/layouts/MainLayout.vue";
-import MainLayout from '../components/layout/MainLayout.vue'
+import MainLayout from "@/components/layout/MainLayout.vue";
 import CrudPage from "@/components/crud/CrudPage.vue";
 import CrudTable from "@/components/crud/CrudTable.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
@@ -11,7 +10,7 @@ import ProjectStatusBadge from "@/components/outreach-projects/ProjectStatusBadg
 import outreachProjectService from "@/services/outreachProjectService";
 import outreachProgramService from "@/services/outreachProgramService";
 import collegeService from "@/services/collegeService";
-import userService from "../services/userService.js";
+import userService from "@/services/userService";
 
 import { useAuthStore } from "@/stores/auth";
 import { useApiErrors } from "@/composables/useApiErrors";
@@ -35,23 +34,21 @@ const {
 
 const modalRef = ref(null);
 
-const projects = ref([]);
+const rows = ref([]);
 const programs = ref([]);
 const colleges = ref([]);
 const coordinators = ref([]);
+const pagination = ref({});
 
 const loading = ref(false);
 const submitting = ref(false);
 const deletingId = ref(null);
 const editingId = ref(null);
-const search = ref("");
-const statusFilter = ref("");
-
-const pagination = reactive({
-    currentPage: 1,
-    lastPage: 1,
-    perPage: 10,
-    total: 0,
+const filters = reactive({
+    search: "",
+    status: "",
+    page: 1,
+    per_page: 10,
 });
 
 const emptyForm = () => ({
@@ -112,8 +109,8 @@ const canAssignCoordinator = computed(
         ),
 );
 
-const formattedProjects = computed(() =>
-    projects.value.map((project) => ({
+const tableRows = computed(() =>
+    rows.value.map((project) => ({
         ...project,
 
         program_name:
@@ -167,27 +164,20 @@ const formatSchedule = (startDate, endDate) => {
     return `${formatDate(startDate)} – ${formatDate(endDate)}`;
 };
 
-const fetchProjects = async (page = 1) => {
+const fetchData = async (page = 1) => {
     loading.value = true;
+    clearErrors();
+    filters.page = page;
 
     try {
-        const response =
-            await outreachProjectService.paginate({
-                page,
-                per_page: pagination.perPage,
-                search: search.value || undefined,
-                status: statusFilter.value || undefined,
-            });
+        const response = await outreachProjectService.paginate({
+            ...filters,
+            search: filters.search || undefined,
+            status: filters.status || undefined,
+        });
 
-        projects.value = response.data ?? [];
-
-        pagination.currentPage =
-            response.current_page ?? 1;
-
-        pagination.lastPage =
-            response.last_page ?? 1;
-
-        pagination.total = response.total ?? 0;
+        rows.value = response.data ?? [];
+        pagination.value = response;
     } catch (error) {
         captureError(error);
     } finally {
@@ -195,7 +185,7 @@ const fetchProjects = async (page = 1) => {
     }
 };
 
-const fetchDependencies = async () => {
+const loadLookups = async () => {
     const requests = [
         outreachProgramService.all(),
         collegeService.all(),
@@ -291,7 +281,7 @@ const normalizePayload = () => ({
               ),
 });
 
-const submit = async () => {
+const submitForm = async () => {
     submitting.value = true;
     clearErrors();
 
@@ -309,9 +299,7 @@ const submit = async () => {
 
         modalRef.value?.close();
 
-        await fetchProjects(
-            pagination.currentPage,
-        );
+        await fetchData(pagination.value.current_page ?? 1);
     } catch (error) {
         captureError(error);
     } finally {
@@ -319,7 +307,7 @@ const submit = async () => {
     }
 };
 
-const remove = async (project) => {
+const deleteProject = async (project) => {
     const confirmed = window.confirm(
         `Delete "${project.title}"?`,
     );
@@ -334,12 +322,12 @@ const remove = async (project) => {
         await outreachProjectService.remove(project.id);
 
         const nextPage =
-            projects.value.length === 1 &&
-            pagination.currentPage > 1
-                ? pagination.currentPage - 1
-                : pagination.currentPage;
+            rows.value.length === 1 &&
+            pagination.value.current_page > 1
+                ? pagination.value.current_page - 1
+                : pagination.value.current_page;
 
-        await fetchProjects(nextPage);
+        await fetchData(nextPage);
     } catch (error) {
         captureError(error);
     } finally {
@@ -369,8 +357,14 @@ const canDeleteProject = (project) => {
     );
 };
 
-const handleSearch = () => {
-    fetchProjects(1);
+const applyFilters = () => {
+    fetchData(1);
+};
+
+const clearFilters = () => {
+    filters.search = "";
+    filters.status = "";
+    fetchData(1);
 };
 
 const resetForm = () => {
@@ -381,8 +375,8 @@ const resetForm = () => {
 
 onMounted(async () => {
     await Promise.all([
-        fetchDependencies(),
-        fetchProjects(),
+        loadLookups(),
+        fetchData(),
     ]);
 });
 </script>
@@ -402,17 +396,17 @@ onMounted(async () => {
                     <div class="col-md-8">
                         <div class="input-group">
                             <input
-                                v-model.trim="search"
+                                v-model.trim="filters.search"
                                 type="search"
                                 class="form-control"
                                 placeholder="Search project title..."
-                                @keyup.enter="handleSearch"
+                                @keyup.enter="applyFilters"
                             />
 
                             <button
                                 class="btn btn-outline-primary"
                                 type="button"
-                                @click="handleSearch"
+                                @click="applyFilters"
                             >
                                 Search
                             </button>
@@ -421,9 +415,9 @@ onMounted(async () => {
 
                     <div class="col-md-4">
                         <select
-                            v-model="statusFilter"
+                            v-model="filters.status"
                             class="form-select"
-                            @change="fetchProjects(1)"
+                            @change="fetchData(1)"
                         >
                             <option value="">
                                 All statuses
@@ -451,6 +445,16 @@ onMounted(async () => {
                             </option>
                         </select>
                     </div>
+
+                    <div class="col-12 text-end">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link text-decoration-none"
+                            @click="clearFilters"
+                        >
+                            Clear filters
+                        </button>
+                    </div>
                 </div>
             </template>
 
@@ -463,7 +467,7 @@ onMounted(async () => {
 
             <CrudTable
                 :columns="columns"
-                :rows="formattedProjects"
+                :rows="tableRows"
                 :loading="loading"
                 empty-message="No outreach projects found."
             >
@@ -488,7 +492,7 @@ onMounted(async () => {
                         type="button"
                         class="btn btn-sm btn-outline-danger"
                         :disabled="deletingId === row.id"
-                        @click="remove(row)"
+                        @click="deleteProject(row)"
                     >
                         <span
                             v-if="deletingId === row.id"
@@ -501,10 +505,11 @@ onMounted(async () => {
             </CrudTable>
 
             <CrudPagination
-                :current-page="pagination.currentPage"
-                :last-page="pagination.lastPage"
-                :total="pagination.total"
-                @change="fetchProjects"
+                :current-page="pagination.current_page"
+                :last-page="pagination.last_page"
+                :prev="Boolean(pagination.prev_page_url)"
+                :next="Boolean(pagination.next_page_url)"
+                @change="fetchData"
             />
         </CrudPage>
 
@@ -520,7 +525,7 @@ onMounted(async () => {
             :editing="Boolean(editingId)"
             :can-assign-college="canAssignCollege"
             :can-assign-coordinator="canAssignCoordinator"
-            @submit="submit"
+            @submit="submitForm"
             @closed="resetForm"
         />
     </MainLayout>
