@@ -2,15 +2,17 @@
 
 namespace App\Http\Requests;
 
+use App\Models\OutreachProgram;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreOutreachProgramRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
-        // later:
-        // return $this->user()->can('create', OutreachProgram::class);
+        return $this->user()?->can(
+            'create',
+            OutreachProgram::class
+        ) ?? false;
     }
 
     public function rules(): array

@@ -38,7 +38,7 @@ class SurveyQuestionService
                 )
             )
             ->when(
-                array_key_exists('is_active', $filters),
+                filled($filters['is_active'] ?? null),
                 fn ($query) => $query->where(
                     'is_active',
                     filter_var(

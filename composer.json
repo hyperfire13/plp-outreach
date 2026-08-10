@@ -49,6 +49,10 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "heroku-postbuild": [
+            "@php artisan config:cache --ansi",
+            "@php artisan view:cache --ansi"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

@@ -2,15 +2,14 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import CrudModal from "../../components/crud/CrudModal.vue";
 import CrudPagination from "../../components/crud/CrudPagination.vue";
-import communityServices from "../../services/communityServices";
+import communityService from "@/services/communityServices";
 import MainLayout from '../../components/layout/MainLayout.vue'
 
 const rows = ref([]);
 const pagination = ref({});
 const loading = ref(false);
 const submitting = ref(false);
-const errors = reactive({})
-const isEdit = ref(false)
+const errors = ref({})
 
 const modalRef = ref(null);
 const editingId = ref(null);
@@ -123,34 +122,6 @@ const modalTitle = computed(() =>
   isEditing.value ? "Edit Community" : "Add Community"
 );
 
-const submit = async () => {
-    clearErrors()
-
-    try {
-        const payload = {
-            ...form,
-            is_active: Boolean(form.is_active)
-        }
-
-        if (isEdit.value) {
-            await outreachProgramService.update(editingId.value, payload)
-        } else {
-            await outreachProgramService.store(payload)
-        }
-
-        modalRef.value.close()
-        await fetch(programs.value.current_page || 1)
-
-    } catch (error) {
-        if (error.response?.data?.errors) {
-            Object.assign(errors, error.response.data.errors)
-            return
-        }
-
-        console.error(error)
-    }
-}
-
 function resetForm() {
   Object.assign(form, defaultForm());
   editingId.value = null;
@@ -192,7 +163,7 @@ async function fetchData(page = 1) {
   try {
     filters.page = page;
 
-    const response = await communityServices.getList(filters);
+    const response = await communityService.getList(filters);
 
     rows.value = response.data.data.data;
     pagination.value = response.data.data;
@@ -221,9 +192,9 @@ async function submitForm() {
     };
 
     if (isEditing.value) {
-      await communityServices.update(editingId.value, payload);
+      await communityService.update(editingId.value, payload);
     } else {
-      await communityServices.create(payload);
+      await communityService.create(payload);
     }
 
     modalRef.value?.close();
@@ -250,7 +221,7 @@ async function deleteCommunity(row) {
   }
 
   try {
-    await communityServices.remove(row.id);
+    await communityService.remove(row.id);
     await fetchData(filters.page);
   } catch (error) {
     const message =
@@ -443,7 +414,10 @@ onMounted(() => {
 
             <div class="card-footer">
             <CrudPagination
-                :pagination="pagination"
+                :current-page="pagination.current_page"
+                :last-page="pagination.last_page"
+                :prev="Boolean(pagination.prev_page_url)"
+                :next="Boolean(pagination.next_page_url)"
                 @change="fetchData"
             />
             </div>
@@ -457,10 +431,9 @@ onMounted(() => {
             :fields="fields"
             :form="form"
             :errors="errors"
-            :submit-label="isEdit ? 'Update' : 'Save'"
-            @submit="submit"
+            :submit-label="isEditing ? 'Update' : 'Save'"
+            @submit="submitForm"
         >
-
         </CrudModal>
         </div>
     </section>

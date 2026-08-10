@@ -53,6 +53,11 @@ class Community extends Model
         return $this->hasMany(PriorityNeed::class);
     }
 
+    public function engagementRecords(): HasMany
+    {
+        return $this->hasMany(EngagementRecord::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);

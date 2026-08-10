@@ -9,27 +9,24 @@ class CollegeSeeder extends Seeder
 {
     public function run(): void
     {
-        // College::truncate();
+        $colleges = [
+            ['name' => 'College of Engineering and Technology', 'code' => 'CET'],
+            ['name' => 'College of Education', 'code' => 'COED'],
+            ['name' => 'College of Business Administration', 'code' => 'CBA'],
+            ['name' => 'College of Arts and Sciences', 'code' => 'CAS'],
+            ['name' => 'College of Nursing', 'code' => 'CON'],
+        ];
 
-        College::create([
-            'name' => 'College of Engineering',
-            'code' => 'ENG',
-            'type' => 'academic',
-            'location' => 'Main Campus'
-        ]);
-
-        College::create([
-            'name' => 'College of Education',
-            'code' => 'EDU',
-            'type' => 'academic',
-            'location' => 'Main Campus'
-        ]);
-
-        College::create([
-            'name' => 'College of Business Administration',
-            'code' => 'BUS',
-            'type' => 'academic',
-            'location' => 'Main Campus'
-        ]);
+        foreach ($colleges as $college) {
+            College::query()->updateOrCreate(
+                ['name' => $college['name']],
+                [
+                    'code' => $college['code'],
+                    'type' => 'academic',
+                    'location' => 'PLP Main Campus',
+                    'is_active' => true,
+                ]
+            );
+        }
     }
 }

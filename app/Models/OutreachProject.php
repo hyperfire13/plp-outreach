@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OutreachProject extends Model
 {
@@ -110,5 +111,10 @@ class OutreachProject extends Model
                 'completed_at',
             ])
             ->withTimestamps();
+    }
+
+    public function engagementRecords(): HasMany
+    {
+        return $this->hasMany(EngagementRecord::class);
     }
 }

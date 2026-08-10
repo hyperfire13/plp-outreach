@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import CrudModal from "@/components/crud/CrudModal.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
+import MainLayout from "@/components/layout/MainLayout.vue";
 import surveyTemplateService from "@/services/surveyTemplateService";
 import surveyQuestionService from "@/services/surveyQuestionService";
 
@@ -59,7 +60,7 @@ function resetForm() {
 
 function openCreate() {
   resetForm();
-  modalRef.value?.show();
+  modalRef.value?.open();
 }
 
 function openEdit(row) {
@@ -79,7 +80,7 @@ function openEdit(row) {
     help_text: row.help_text ?? "",
   });
 
-  modalRef.value?.show();
+  modalRef.value?.open();
 }
 
 function addOption() {
@@ -98,7 +99,7 @@ function removeOption(index) {
 }
 
 async function loadTemplates() {
-  const response = await surveyTemplateService.list({
+  const response = await surveyTemplateService.getList({
     per_page: 100,
   });
 
@@ -111,7 +112,7 @@ async function fetchData(page = 1) {
   try {
     filters.page = page;
 
-    const response = await surveyQuestionService.list(filters);
+    const response = await surveyQuestionService.getList(filters);
 
     rows.value = response.data.data.data;
     pagination.value = response.data.data;
@@ -137,7 +138,7 @@ async function submitForm() {
       await surveyQuestionService.create(payload);
     }
 
-    modalRef.value?.hide();
+    modalRef.value?.close();
     resetForm();
     await fetchData(filters.page);
   } catch (error) {
@@ -185,8 +186,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="content">
-    <div class="container-fluid">
+  <MainLayout>
+    <section class="content">
+      <div class="container-fluid">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h1 class="h3 mb-1">Survey Questions</h1>
@@ -359,7 +361,10 @@ onMounted(async () => {
 
         <div class="card-footer">
           <CrudPagination
-            :pagination="pagination"
+            :current-page="pagination.current_page"
+            :last-page="pagination.last_page"
+            :prev="Boolean(pagination.prev_page_url)"
+            :next="Boolean(pagination.next_page_url)"
             @change="fetchData"
           />
         </div>
@@ -368,6 +373,8 @@ onMounted(async () => {
       <CrudModal
         ref="modalRef"
         :title="isEditing ? 'Edit Survey Question' : 'Add Survey Question'"
+        :form="form"
+        :errors="errors"
         size="lg"
         @hidden="resetForm"
       >
@@ -551,7 +558,7 @@ onMounted(async () => {
         <template #footer>
           <button
             class="btn btn-secondary"
-            @click="modalRef?.hide()"
+            @click="modalRef?.close()"
           >
             Cancel
           </button>
@@ -565,10 +572,11 @@ onMounted(async () => {
               v-if="submitting"
               class="spinner-border spinner-border-sm me-1"
             ></span>
-            Save Question
+            {{ isEditing ? "Update Question" : "Save Question" }}
           </button>
         </template>
       </CrudModal>
-    </div>
-  </section>
+      </div>
+    </section>
+  </MainLayout>
 </template>

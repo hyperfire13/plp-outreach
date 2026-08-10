@@ -19,7 +19,7 @@ export default {
         return api.put(`${endpoint}/${id}`, data);
     },
 
-    delete(id) {
+    remove(id) {
         return api.delete(`${endpoint}/${id}`);
     }
 

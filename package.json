@@ -4,6 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
+        "heroku-postbuild": "npm run build",
         "dev": "vite"
     },
     "devDependencies": {

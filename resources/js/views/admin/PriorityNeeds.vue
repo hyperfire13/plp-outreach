@@ -1,10 +1,9 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
-import communityService from "@/services/communityService";
+import MainLayout from "@/components/layout/MainLayout.vue";
+import communityService from "@/services/communityServices";
 import priorityNeedService from "@/services/priorityNeedService";
-
-import { priorityNeedService } from "@/api/priorityNeeds";
 
 const rows = ref([]);
 const summary = ref([]);
@@ -23,7 +22,7 @@ const filters = reactive({
 });
 
 async function loadCommunities() {
-  const response = await communityService.all();
+  const response = await communityService.getAll();
   communities.value = response.data.data;
 }
 
@@ -35,8 +34,8 @@ async function fetchData(page = 1) {
 
     const [listResponse, summaryResponse] =
       await Promise.all([
-        priorityNeedService.list(filters),
-        priorityNeedService.summary({
+        priorityNeedService.getList(filters),
+        priorityNeedService.getSummary({
           community_id: filters.community_id,
           year: filters.year,
           month: filters.month,
@@ -58,8 +57,9 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="content">
-    <div class="container-fluid">
+  <MainLayout>
+    <section class="content">
+      <div class="container-fluid">
       <div class="mb-3">
         <h1 class="h3 mb-1">Priority Needs</h1>
         <p class="text-muted mb-0">
@@ -214,11 +214,15 @@ onMounted(async () => {
 
         <div class="card-footer">
           <CrudPagination
-            :pagination="pagination"
+            :current-page="pagination.current_page"
+            :last-page="pagination.last_page"
+            :prev="Boolean(pagination.prev_page_url)"
+            :next="Boolean(pagination.next_page_url)"
             @change="fetchData"
           />
         </div>
       </div>
-    </div>
-  </section>
+      </div>
+    </section>
+  </MainLayout>
 </template>

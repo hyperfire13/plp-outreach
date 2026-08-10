@@ -45,10 +45,23 @@ class PriorityNeedService
             )
             ->whereHas(
                 'response',
-                fn ($query) => $query->where(
-                    'status',
-                    'submitted'
-                )
+                function ($query) use ($filters) {
+                    $query->where('status', 'submitted')
+                        ->when(
+                            filled($filters['year'] ?? null),
+                            fn ($query) => $query->whereYear(
+                                'survey_date',
+                                $filters['year']
+                            )
+                        )
+                        ->when(
+                            filled($filters['month'] ?? null),
+                            fn ($query) => $query->whereMonth(
+                                'survey_date',
+                                $filters['month']
+                            )
+                        );
+                }
             )
             ->orderBy('priority_rank')
             ->latest('id')

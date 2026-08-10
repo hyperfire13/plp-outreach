@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { ROLE_GROUPS } from "../constants/roles";
 
 import Login from "../views/Login.vue";
 import Dashboard from "../views/Dashboard.vue";
@@ -26,10 +27,7 @@ const routes = [
         component: Users,
         meta: {
             requiresAuth: true,
-            roles: [
-                "super_admin",
-                "college_admin",
-            ],
+            roles: ROLE_GROUPS.USER_MANAGERS,
         },
     },
     {
@@ -38,6 +36,7 @@ const routes = [
         component: Colleges,
         meta: {
             requiresAuth: true,
+            roles: ROLE_GROUPS.COLLEGE_MANAGERS,
         },
     },
     {
@@ -47,10 +46,7 @@ const routes = [
             import("../pages/OutreachPrograms.vue"),
         meta: {
             requiresAuth: true,
-            roles: [
-                "super_admin",
-                "calo_administrator",
-            ],
+            roles: ROLE_GROUPS.PROGRAM_VIEWERS,
         },
     },
     {
@@ -60,19 +56,7 @@ const routes = [
             import("../pages/OutreachProjects.vue"),
         meta: {
             requiresAuth: true,
-            roles: [
-                "super_admin",
-                "calo_administrator",
-                "college_admin",
-                "project_proponent",
-                "faculty_extension_coordinator",
-                "college_department_head",
-                "community_partner",
-                "external_evaluator",
-                "student_volunteer",
-                "alumni_partner",
-                "monitoring_evaluation_team",
-            ],
+            roles: ROLE_GROUPS.PROJECT_VIEWERS,
         },
     },
     {
@@ -83,6 +67,7 @@ const routes = [
   meta: {
     title: "Communities",
     requiresAuth: true,
+    roles: ROLE_GROUPS.COMMUNITY_MANAGERS,
   },
     },
     {
@@ -93,6 +78,7 @@ const routes = [
     meta: {
         title: "Survey Templates",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_DESIGNERS,
     },
     },
     {
@@ -103,6 +89,7 @@ const routes = [
     meta: {
         title: "Survey Questions",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_DESIGNERS,
     },
     },
     {
@@ -113,6 +100,7 @@ const routes = [
     meta: {
         title: "Survey Responses",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
     },
     },
     {
@@ -123,6 +111,7 @@ const routes = [
     meta: {
         title: "Conduct Survey",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
     },
     },
     {
@@ -133,6 +122,7 @@ const routes = [
     meta: {
         title: "Edit Survey Response",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
     },
     },
     {
@@ -143,6 +133,7 @@ const routes = [
     meta: {
         title: "Survey Response",
         requiresAuth: true,
+        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
     },
     },
     {
@@ -153,7 +144,41 @@ const routes = [
     meta: {
         title: "Priority Needs",
         requiresAuth: true,
+        roles: ROLE_GROUPS.PRIORITY_NEED_VIEWERS,
     },
+    },
+    {
+        path: "/engagement-records",
+        name: "admin-engagement-records",
+        component: () =>
+            import("@/views/admin/EngagementRecords.vue"),
+        meta: {
+            title: "Engagement Records",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
+    },
+    {
+        path: "/engagement-profile",
+        name: "engagement-profile-me",
+        component: () =>
+            import("@/views/admin/EngagementProfile.vue"),
+        meta: {
+            title: "My Engagement Profile",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
+    },
+    {
+        path: "/engagement-profiles/:userId",
+        name: "engagement-profile-view",
+        component: () =>
+            import("@/views/admin/EngagementProfile.vue"),
+        meta: {
+            title: "Engagement Profile",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.ENGAGEMENT_VIEWERS,
+        },
     },
     {
         path: "/forbidden",

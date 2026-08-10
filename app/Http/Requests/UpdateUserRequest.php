@@ -8,23 +8,10 @@ class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $authUser = $this->user();
-        $targetUser = $this->route('user');
-
-        // Super admin can update anyone
-        if ($authUser->role->name === 'super_admin') {
-            return true;
-        }
-
-        // College admin can update users within their college
-        if (
-            $authUser->role->name === 'college_admin' &&
-            $authUser->college_id === $targetUser->college_id
-        ) {
-            return true;
-        }
-
-        return false;
+        return $this->user()?->can(
+            'update',
+            $this->route('user')
+        ) ?? false;
     }
 
     public function rules(): array

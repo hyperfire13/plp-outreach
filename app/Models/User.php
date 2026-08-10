@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -137,6 +138,22 @@ class User extends Authenticatable
             ])
             ->withTimestamps();
     }
+
+    public function engagementRecords(): HasMany
+    {
+        return $this->hasMany(EngagementRecord::class);
+    }
+
+    public function encodedEngagementRecords(): HasMany
+    {
+        return $this->hasMany(EngagementRecord::class, 'encoded_by');
+    }
+
+    public function validatedEngagementRecords(): HasMany
+    {
+        return $this->hasMany(EngagementRecord::class, 'validated_by');
+    }
+
     public function hasRole(string ...$roles): bool
     {
         return in_array(
