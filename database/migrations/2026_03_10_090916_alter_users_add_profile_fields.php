@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('first_name')->after('id')->nullable();
             $table->string('middle_name')->nullable()->after('first_name');
             $table->string('last_name')->after('middle_name')->nullable();
-             $table->string('name')->nullable();
+            $table->string('name')->nullable()->change();
             $table->date('birthday')->nullable()->after('last_name');
 
             $table->string('contact_number')->nullable()->after('birthday');
@@ -26,8 +26,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-
-            $table->string('name');
 
             $table->dropColumn([
                 'first_name',

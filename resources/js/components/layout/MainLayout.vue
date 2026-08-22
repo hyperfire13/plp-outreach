@@ -55,6 +55,16 @@
                 <div class="fw-semibold">{{ currentUserName }}</div>
                 <small class="text-muted">{{ authStore.user?.email }}</small>
               </li>
+              <li class="p-2 pb-0">
+                <RouterLink
+                  :to="{ name: 'profile' }"
+                  class="btn btn-outline-primary w-100"
+                  @click="closeSidebarOnMobile"
+                >
+                  <i class="bi bi-person me-1"></i>
+                  My Profile
+                </RouterLink>
+              </li>
               <li class="p-2">
                 <button
                   type="button"

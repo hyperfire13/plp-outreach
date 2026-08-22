@@ -8,6 +8,7 @@ use App\Http\Controllers\API\EngagementRecordController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
 use App\Http\Controllers\API\PriorityNeedController;
+use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SurveyQuestionController;
 use App\Http\Controllers\API\SurveyResponseController;
@@ -26,6 +27,12 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
         function () use ($roleMiddleware) {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
+            Route::get('/profile', [ProfileController::class, 'show']);
+            Route::put('/profile', [ProfileController::class, 'update']);
+            Route::put(
+                '/profile/password',
+                [ProfileController::class, 'updatePassword']
+            )->middleware('throttle:5,1');
 
             Route::middleware($roleMiddleware('user_managers'))
                 ->group(function () {
