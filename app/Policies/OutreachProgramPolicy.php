@@ -33,14 +33,12 @@ class OutreachProgramPolicy
 
     public function update(User $user, OutreachProgram $program): bool
     {
-        return in_array($user->role->name, [
-            'super_admin',
-            'college_admin',
-        ]);
+        return $program->created_by !== null
+            && $program->created_by === $user->id;
     }
 
     public function delete(User $user, OutreachProgram $program): bool
     {
-        return $user->role->name === 'super_admin';
+        return $this->update($user, $program);
     }
 }

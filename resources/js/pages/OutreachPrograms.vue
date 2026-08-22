@@ -8,9 +8,29 @@
             <CrudTable
                 :columns="columns"
                 :rows="formattedPrograms"
-                @edit="openEdit"
-                @delete="remove"
-            />
+                :loading="loading"
+                empty-message="No outreach programs found."
+            >
+                <template #actions="{ row }">
+                    <button
+                        v-if="canManageProgram(row)"
+                        type="button"
+                        class="btn btn-sm btn-outline-primary me-1"
+                        @click="openEdit(row)"
+                    >
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <button
+                        v-if="canManageProgram(row)"
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        @click="deleteProgram(row)"
+                    >
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </template>
+            </CrudTable>
 
             <CrudPagination
                 :current-page="programs.current_page || 1"
@@ -48,6 +68,9 @@ import CrudPagination from '../components/crud/CrudPagination.vue'
 import CrudModal from '../components/crud/CrudModal.vue'
 
 import outreachProgramService from '../services/outreachProgramService.js'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const programs = ref({
     data: [],
@@ -255,7 +278,7 @@ const submit = async () => {
     }
 }
 
-const remove = async program => {
+const deleteProgram = async program => {
     const confirmed = confirm(
         `Delete ${program.name}?`
     )
@@ -287,6 +310,10 @@ const remove = async program => {
             error
         )
     }
+}
+
+const canManageProgram = program => {
+    return Number(program.created_by) === Number(authStore.userId)
 }
 
 const resetForm = () => {

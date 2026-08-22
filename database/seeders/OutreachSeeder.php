@@ -14,15 +14,24 @@ class OutreachSeeder extends Seeder
 {
     public function run(): void
     {
+        $users = User::query()->pluck('id', 'email');
+
         $programs = collect([
-            ['name' => 'Digital Literacy and Inclusion Program', 'category' => 'Education and Technology', 'description' => 'Builds practical digital skills, online safety awareness, and access to essential e-government services.', 'typical_budget' => 85000, 'typical_duration_days' => 30],
-            ['name' => 'Community Health and Wellness Program', 'category' => 'Health and Nutrition', 'description' => 'Provides preventive health education, basic screening, nutrition counseling, and referral support.', 'typical_budget' => 120000, 'typical_duration_days' => 14],
-            ['name' => 'Sustainable Livelihood Development Program', 'category' => 'Livelihood and Entrepreneurship', 'description' => 'Supports microenterprise planning, financial literacy, product development, and market readiness.', 'typical_budget' => 150000, 'typical_duration_days' => 60],
-            ['name' => 'Disaster Resilience and Environmental Stewardship', 'category' => 'Environment and Disaster Preparedness', 'description' => 'Strengthens disaster preparedness, waste management, and community-led environmental action.', 'typical_budget' => 95000, 'typical_duration_days' => 21],
-        ])->mapWithKeys(function (array $data) {
+            ['creator' => 'super.admin@plp.edu.ph', 'name' => 'Digital Literacy and Inclusion Program', 'category' => 'Education and Technology', 'description' => 'Builds practical digital skills, online safety awareness, and access to essential e-government services.', 'typical_budget' => 85000, 'typical_duration_days' => 30],
+            ['creator' => 'faculty.extension@plp.edu.ph', 'name' => 'Community Health and Wellness Program', 'category' => 'Health and Nutrition', 'description' => 'Provides preventive health education, basic screening, nutrition counseling, and referral support.', 'typical_budget' => 120000, 'typical_duration_days' => 14],
+            ['creator' => 'college.admin@plp.edu.ph', 'name' => 'Sustainable Livelihood Development Program', 'category' => 'Livelihood and Entrepreneurship', 'description' => 'Supports microenterprise planning, financial literacy, product development, and market readiness.', 'typical_budget' => 150000, 'typical_duration_days' => 60],
+            ['creator' => 'super.admin@plp.edu.ph', 'name' => 'Disaster Resilience and Environmental Stewardship', 'category' => 'Environment and Disaster Preparedness', 'description' => 'Strengthens disaster preparedness, waste management, and community-led environmental action.', 'typical_budget' => 95000, 'typical_duration_days' => 21],
+        ])->mapWithKeys(function (array $data) use ($users) {
+            $creatorEmail = $data['creator'];
+            unset($data['creator']);
+
             $program = OutreachProgram::query()->updateOrCreate(
                 ['name' => $data['name']],
-                [...$data, 'is_active' => true]
+                [
+                    ...$data,
+                    'is_active' => true,
+                    'created_by' => $users[$creatorEmail],
+                ]
             );
 
             return [$program->name => $program];
@@ -30,7 +39,6 @@ class OutreachSeeder extends Seeder
 
         $colleges = College::query()->pluck('id', 'code');
         $communities = Community::query()->pluck('id', 'barangay_code');
-        $users = User::query()->pluck('id', 'email');
 
         $projectData = [
             [

@@ -32,6 +32,7 @@ class OutreachProgramController extends Controller
     ): JsonResponse {
 
         $program = $this->service->store(
+            $request->user(),
             $request->validated()
         );
 
@@ -47,7 +48,9 @@ class OutreachProgramController extends Controller
     ): JsonResponse {
 
         return response()->json(
-            $outreachProgram
+            $outreachProgram->load(
+                'creator:id,first_name,middle_name,last_name'
+            )
         );
 
     }

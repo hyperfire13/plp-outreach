@@ -88,6 +88,11 @@ class User extends Authenticatable
         );
     }
 
+    public function createdOutreachPrograms(): HasMany
+    {
+        return $this->hasMany(OutreachProgram::class, 'created_by');
+    }
+
     public function coordinatedOutreachProjects()
     {
         return $this->hasMany(
