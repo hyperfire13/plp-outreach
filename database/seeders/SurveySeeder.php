@@ -15,9 +15,17 @@ class SurveySeeder extends Seeder
 {
     public function run(): void
     {
-        $administrator = User::query()->where('email', 'calo.admin@plp.edu.ph')->firstOrFail();
-        $fieldCoordinator = User::query()->where('email', 'faculty.extension@plp.edu.ph')->firstOrFail();
-        $communityPartner = User::query()->where('email', 'community.partner@example.org')->firstOrFail();
+        $administrator = User::query()
+            ->where('email', 'calo.admin@plp.edu.ph')
+            ->firstOrFail();
+        $fieldCoordinator = User::query()->where(
+            'email',
+            UserSeeder::emailFor('COED', 'faculty_extension_coordinator')
+        )->firstOrFail();
+        $communityPartner = User::query()->where(
+            'email',
+            UserSeeder::emailFor('CET', 'community_partner')
+        )->firstOrFail();
 
         $template = SurveyTemplate::query()->updateOrCreate(
             ['title' => 'PLP Community Needs Assessment', 'version' => 1],

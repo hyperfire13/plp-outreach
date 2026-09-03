@@ -15,12 +15,17 @@ class OutreachSeeder extends Seeder
     public function run(): void
     {
         $users = User::query()->pluck('id', 'email');
+        $email = static fn (
+            string $college,
+            string $role,
+            int $sequence = 1
+        ): string => UserSeeder::emailFor($college, $role, $sequence);
 
         $programs = collect([
-            ['creator' => 'super.admin@plp.edu.ph', 'name' => 'Digital Literacy and Inclusion Program', 'category' => 'Education and Technology', 'description' => 'Builds practical digital skills, online safety awareness, and access to essential e-government services.', 'typical_budget' => 85000, 'typical_duration_days' => 30],
-            ['creator' => 'faculty.extension@plp.edu.ph', 'name' => 'Community Health and Wellness Program', 'category' => 'Health and Nutrition', 'description' => 'Provides preventive health education, basic screening, nutrition counseling, and referral support.', 'typical_budget' => 120000, 'typical_duration_days' => 14],
-            ['creator' => 'college.admin@plp.edu.ph', 'name' => 'Sustainable Livelihood Development Program', 'category' => 'Livelihood and Entrepreneurship', 'description' => 'Supports microenterprise planning, financial literacy, product development, and market readiness.', 'typical_budget' => 150000, 'typical_duration_days' => 60],
-            ['creator' => 'super.admin@plp.edu.ph', 'name' => 'Disaster Resilience and Environmental Stewardship', 'category' => 'Environment and Disaster Preparedness', 'description' => 'Strengthens disaster preparedness, waste management, and community-led environmental action.', 'typical_budget' => 95000, 'typical_duration_days' => 21],
+            ['creator' => $email('CET', 'college_admin'), 'name' => 'Digital Literacy and Inclusion Program', 'category' => 'Education and Technology', 'description' => 'Builds practical digital skills, online safety awareness, and access to essential e-government services.', 'typical_budget' => 85000, 'typical_duration_days' => 30],
+            ['creator' => $email('CON', 'faculty_extension_coordinator'), 'name' => 'Community Health and Wellness Program', 'category' => 'Health and Nutrition', 'description' => 'Provides preventive health education, basic screening, nutrition counseling, and referral support.', 'typical_budget' => 120000, 'typical_duration_days' => 14],
+            ['creator' => $email('CBA', 'college_admin'), 'name' => 'Sustainable Livelihood Development Program', 'category' => 'Livelihood and Entrepreneurship', 'description' => 'Supports microenterprise planning, financial literacy, product development, and market readiness.', 'typical_budget' => 150000, 'typical_duration_days' => 60],
+            ['creator' => $email('CAS', 'college_admin'), 'name' => 'Disaster Resilience and Environmental Stewardship', 'category' => 'Environment and Disaster Preparedness', 'description' => 'Strengthens disaster preparedness, waste management, and community-led environmental action.', 'typical_budget' => 95000, 'typical_duration_days' => 21],
         ])->mapWithKeys(function (array $data) use ($users) {
             $creatorEmail = $data['creator'];
             unset($data['creator']);
@@ -45,8 +50,8 @@ class OutreachSeeder extends Seeder
                 'key' => 'digital',
                 'program' => 'Digital Literacy and Inclusion Program',
                 'college' => 'CET',
-                'creator' => 'project.proponent@plp.edu.ph',
-                'coordinator' => 'coordinator@plp.edu.ph',
+                'creator' => $email('CET', 'project_proponent'),
+                'coordinator' => $email('CET', 'coordinator'),
                 'title' => 'e-Kaalaman: Community Digital Skills Training',
                 'description' => 'A four-week hands-on training covering smartphone productivity, online safety, digital payments, and government service portals.',
                 'objectives' => 'Train residents in essential digital skills; improve safe use of online services; prepare youth volunteers as peer digital mentors.',
@@ -60,8 +65,8 @@ class OutreachSeeder extends Seeder
                 'key' => 'health',
                 'program' => 'Community Health and Wellness Program',
                 'college' => 'CON',
-                'creator' => 'faculty.extension@plp.edu.ph',
-                'coordinator' => 'faculty.extension@plp.edu.ph',
+                'creator' => $email('CON', 'faculty_extension_coordinator'),
+                'coordinator' => $email('CON', 'faculty_extension_coordinator'),
                 'title' => 'Healthy Families: Preventive Care and Nutrition Caravan',
                 'description' => 'Community health screening and education sessions for families, older persons, and at-risk adults.',
                 'objectives' => 'Provide basic screening; promote nutrition and medication adherence; connect residents with local health services.',
@@ -75,8 +80,8 @@ class OutreachSeeder extends Seeder
                 'key' => 'livelihood',
                 'program' => 'Sustainable Livelihood Development Program',
                 'college' => 'CBA',
-                'creator' => 'project.proponent@plp.edu.ph',
-                'coordinator' => 'coordinator@plp.edu.ph',
+                'creator' => $email('CBA', 'project_proponent'),
+                'coordinator' => $email('CBA', 'coordinator'),
                 'title' => 'Negosyong Barangay: Microenterprise Readiness Series',
                 'description' => 'Business fundamentals, costing, recordkeeping, digital marketing, and product-development workshops for aspiring entrepreneurs.',
                 'objectives' => 'Improve basic business management; develop viable product concepts; connect participants with local market opportunities.',
@@ -109,27 +114,27 @@ class OutreachSeeder extends Seeder
         }
 
         $projects['digital']->members()->syncWithoutDetaching([
-            $users['student.volunteer@plp.edu.ph'] => ['member_role' => 'Digital mentor', 'status' => 'active', 'joined_at' => '2025-08-20 09:00:00'],
-            $users['joshua.reyes@plp.edu.ph'] => ['member_role' => 'Technical facilitator', 'status' => 'active', 'joined_at' => '2025-08-20 09:00:00'],
+            $users[$email('CET', 'student_volunteer')] => ['member_role' => 'Digital mentor', 'status' => 'active', 'joined_at' => '2025-08-20 09:00:00'],
+            $users[$email('CET', 'student_volunteer', 2)] => ['member_role' => 'Technical facilitator', 'status' => 'active', 'joined_at' => '2025-08-20 09:00:00'],
         ]);
         $projects['health']->members()->syncWithoutDetaching([
-            $users['angela.mercado@plp.edu.ph'] => ['member_role' => 'Student health volunteer', 'status' => 'active', 'joined_at' => '2026-01-20 09:00:00'],
-            $users['student.volunteer@plp.edu.ph'] => ['member_role' => 'Registration volunteer', 'status' => 'active', 'joined_at' => '2026-01-20 09:00:00'],
+            $users[$email('CON', 'student_volunteer')] => ['member_role' => 'Student health volunteer', 'status' => 'active', 'joined_at' => '2026-01-20 09:00:00'],
+            $users[$email('CON', 'student_volunteer', 2)] => ['member_role' => 'Registration volunteer', 'status' => 'active', 'joined_at' => '2026-01-20 09:00:00'],
         ]);
         $projects['livelihood']->members()->syncWithoutDetaching([
-            $users['alumni.partner@plp.edu.ph'] => ['member_role' => 'Business mentor', 'status' => 'active', 'joined_at' => '2026-07-15 09:00:00'],
+            $users[$email('CBA', 'alumni_partner')] => ['member_role' => 'Business mentor', 'status' => 'active', 'joined_at' => '2026-07-15 09:00:00'],
         ]);
 
         foreach ($projects as $project) {
             $project->communityPartners()->syncWithoutDetaching([
-                $users['community.partner@example.org'] => [
+                $users[$email('CET', 'community_partner')] => [
                     'organization_name' => 'Pasig Community Development Network',
                     'contact_person' => 'Nora F. Bautista',
                     'status' => 'active',
                 ],
             ]);
             $project->evaluators()->syncWithoutDetaching([
-                $users['external.evaluator@example.org'] => [
+                $users[$email('CET', 'external_evaluator')] => [
                     'evaluation_type' => 'Outcome and quality review',
                     'status' => $project->status === 'completed' ? 'completed' : 'assigned',
                     'assigned_at' => $project->approved_at,
@@ -145,15 +150,29 @@ class OutreachSeeder extends Seeder
         ];
 
         foreach ($records as $record) {
-            OutreachRecord::query()->updateOrCreate(
-                [
-                    'community_id' => $communities[$record['community']],
-                    'outreach_program_id' => $programs[$record['program']]->id,
-                    'college_id' => $colleges[$record['college']],
-                    'execution_date' => $record['execution_date'],
-                ],
-                collect($record)->except(['community', 'program', 'college', 'execution_date'])->all()
-            );
+            $communityId = $communities[$record['community']];
+            $programId = $programs[$record['program']]->id;
+            $collegeId = $colleges[$record['college']];
+
+            $outreachRecord = OutreachRecord::query()
+                ->where('community_id', $communityId)
+                ->where('outreach_program_id', $programId)
+                ->where('college_id', $collegeId)
+                ->whereDate('execution_date', $record['execution_date'])
+                ->firstOrNew();
+
+            $outreachRecord->fill([
+                'community_id' => $communityId,
+                'outreach_program_id' => $programId,
+                'college_id' => $collegeId,
+                'execution_date' => $record['execution_date'],
+                ...collect($record)->except([
+                    'community',
+                    'program',
+                    'college',
+                    'execution_date',
+                ])->all(),
+            ])->save();
         }
     }
 }
