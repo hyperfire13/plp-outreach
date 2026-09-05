@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\User;
 use App\Models\OutreachProgram;
+use App\Models\OutreachRecord;
+use App\Models\User;
 use App\Policies\OutreachProgramPolicy;
+use App\Policies\OutreachRecordPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -13,6 +15,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         User::class => UserPolicy::class,
         OutreachProgram::class => OutreachProgramPolicy::class,
+        OutreachRecord::class => OutreachRecordPolicy::class,
     ];
 
     public function boot(): void

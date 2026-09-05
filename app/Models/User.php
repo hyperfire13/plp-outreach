@@ -94,6 +94,11 @@ class User extends Authenticatable
         return $this->hasMany(OutreachProgram::class, 'created_by');
     }
 
+    public function createdOutreachRecords(): HasMany
+    {
+        return $this->hasMany(OutreachRecord::class, 'created_by');
+    }
+
     public function coordinatedOutreachProjects()
     {
         return $this->hasMany(

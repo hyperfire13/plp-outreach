@@ -69,6 +69,12 @@ const routes = [
         },
     },
     {
+        path: "/outreach-records",
+        name: "outreach-records",
+        component: () => import("../pages/OutreachRecords.vue"),
+        meta: { requiresAuth: true, roles: ROLE_GROUPS.OUTREACH_RECORD_VIEWERS },
+    },
+    {
   path: "/communities",
   name: "admin-communities",
   component: () =>

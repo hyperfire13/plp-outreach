@@ -42,6 +42,24 @@ return [
         'monitoring_evaluation_team',
     ],
 
+    'outreach_record_viewers' => [
+        'super_admin',
+        'calo_administrator',
+        'college_admin',
+        'project_proponent',
+        'faculty_extension_coordinator',
+        'college_department_head',
+        'monitoring_evaluation_team',
+    ],
+
+    'outreach_record_encoders' => [
+        'super_admin',
+        'calo_administrator',
+        'college_admin',
+        'project_proponent',
+        'faculty_extension_coordinator',
+    ],
+
     'community_managers' => [
         'super_admin',
         'calo_administrator',

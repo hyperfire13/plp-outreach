@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OutreachRecord extends Model
 {
@@ -18,7 +19,8 @@ class OutreachRecord extends Model
         'impact_score',
         'success_rate',
         'satisfaction_rating',
-        'execution_date'
+        'execution_date',
+        'created_by',
     ];
 
     protected $casts = [
@@ -27,7 +29,7 @@ class OutreachRecord extends Model
         'impact_score' => 'float',
         'success_rate' => 'float',
         'satisfaction_rating' => 'float',
-        'execution_date' => 'date'
+        'execution_date' => 'date',
     ];
 
     /* ==============================
@@ -47,5 +49,10 @@ class OutreachRecord extends Model
     public function college()
     {
         return $this->belongsTo(College::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -61,4 +61,12 @@ export default {
         });
         return response.data;
     },
+
+    async downloadProfilePdf(userId = null, params = {}) {
+        const path = userId
+            ? `/engagement-profiles/${userId}/pdf`
+            : "/engagement-profiles/me/pdf";
+        const response = await api.get(path, { params, responseType: "blob" });
+        return response;
+    },
 };

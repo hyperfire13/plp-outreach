@@ -182,6 +182,12 @@
                     <p>Outreach Projects</p>
                   </RouterLink>
                 </li>
+                <li v-if="canViewOutreachRecords" class="nav-item">
+                  <RouterLink :to="{ name: 'outreach-records' }" class="nav-link text-white" active-class="active" @click="closeSidebarOnMobile">
+                    <i class="nav-icon bi bi-clipboard-check"></i>
+                    <p>Accomplishment Records</p>
+                  </RouterLink>
+                </li>
 
                 <li v-if="hasCommunityAssessmentAccess" class="nav-header text-white">
                   <b>COMMUNITY ASSESSMENT</b>
@@ -331,6 +337,9 @@ const canViewPrograms = computed(() =>
 const canViewProjects = computed(() =>
   canAccessRoles(ROLE_GROUPS.PROJECT_VIEWERS),
 );
+const canViewOutreachRecords = computed(() =>
+  canAccessRoles(ROLE_GROUPS.OUTREACH_RECORD_VIEWERS),
+);
 const canManageCommunities = computed(() =>
   canAccessRoles(ROLE_GROUPS.COMMUNITY_MANAGERS),
 );
@@ -351,7 +360,7 @@ const hasSystemSettingsAccess = computed(() =>
   canManageUsers.value || canManageColleges.value,
 );
 const hasOutreachAccess = computed(() =>
-  canViewPrograms.value || canViewProjects.value,
+  canViewPrograms.value || canViewProjects.value || canViewOutreachRecords.value,
 );
 const hasCommunityAssessmentAccess = computed(() =>
   canManageCommunities.value ||
@@ -391,6 +400,7 @@ const settingsRouteNames = [
   "colleges",
   "outreach-programs",
   "outreach-projects",
+  "outreach-records",
   "admin-communities",
   "admin-survey-templates",
   "admin-survey-questions",

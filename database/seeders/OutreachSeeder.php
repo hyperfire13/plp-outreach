@@ -144,9 +144,9 @@ class OutreachSeeder extends Seeder
         }
 
         $records = [
-            ['community' => 'PSG-SM-001', 'program' => 'Digital Literacy and Inclusion Program', 'college' => 'CET', 'budget_used' => 74650, 'volunteers_count' => 18, 'impact_score' => 91.5, 'success_rate' => 93.75, 'satisfaction_rating' => 4.72, 'execution_date' => '2025-09-27'],
-            ['community' => 'PSG-PB-002', 'program' => 'Community Health and Wellness Program', 'college' => 'CON', 'budget_used' => 106480, 'volunteers_count' => 32, 'impact_score' => 94.2, 'success_rate' => 96.40, 'satisfaction_rating' => 4.81, 'execution_date' => '2026-02-15'],
-            ['community' => 'PSG-MG-003', 'program' => 'Disaster Resilience and Environmental Stewardship', 'college' => 'CAS', 'budget_used' => 68300, 'volunteers_count' => 24, 'impact_score' => 87.8, 'success_rate' => 89.10, 'satisfaction_rating' => 4.55, 'execution_date' => '2026-05-23'],
+            ['community' => 'PSG-SM-001', 'program' => 'Digital Literacy and Inclusion Program', 'college' => 'CET', 'creator' => $email('CET', 'faculty_extension_coordinator'), 'budget_used' => 74650, 'volunteers_count' => 18, 'impact_score' => 91.5, 'success_rate' => 93.75, 'satisfaction_rating' => 4.72, 'execution_date' => '2025-09-27'],
+            ['community' => 'PSG-PB-002', 'program' => 'Community Health and Wellness Program', 'college' => 'CON', 'creator' => $email('CON', 'faculty_extension_coordinator'), 'budget_used' => 106480, 'volunteers_count' => 32, 'impact_score' => 94.2, 'success_rate' => 96.40, 'satisfaction_rating' => 4.81, 'execution_date' => '2026-02-15'],
+            ['community' => 'PSG-MG-003', 'program' => 'Disaster Resilience and Environmental Stewardship', 'college' => 'CAS', 'creator' => $email('CAS', 'college_admin'), 'budget_used' => 68300, 'volunteers_count' => 24, 'impact_score' => 87.8, 'success_rate' => 89.10, 'satisfaction_rating' => 4.55, 'execution_date' => '2026-05-23'],
         ];
 
         foreach ($records as $record) {
@@ -166,11 +166,13 @@ class OutreachSeeder extends Seeder
                 'outreach_program_id' => $programId,
                 'college_id' => $collegeId,
                 'execution_date' => $record['execution_date'],
+                'created_by' => $users[$record['creator']],
                 ...collect($record)->except([
                     'community',
                     'program',
                     'college',
                     'execution_date',
+                    'creator',
                 ])->all(),
             ])->save();
         }

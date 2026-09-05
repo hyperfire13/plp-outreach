@@ -3,10 +3,12 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\CommunityController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\EngagementProfileController;
 use App\Http\Controllers\API\EngagementRecordController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
+use App\Http\Controllers\API\OutreachRecordController;
 use App\Http\Controllers\API\PriorityNeedController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\RoleController;
@@ -27,6 +29,7 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
         function () use ($roleMiddleware) {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
+            Route::get('/dashboard', DashboardController::class);
             Route::get('/profile', [ProfileController::class, 'show']);
             Route::put('/profile', [ProfileController::class, 'update']);
             Route::put(
@@ -66,6 +69,18 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                     Route::apiResource(
                         'outreach-projects',
                         OutreachProjectController::class
+                    );
+                });
+
+            Route::middleware($roleMiddleware('outreach_record_viewers'))
+                ->group(function () {
+                    Route::get(
+                        '/outreach-records/options',
+                        [OutreachRecordController::class, 'options']
+                    );
+                    Route::apiResource(
+                        'outreach-records',
+                        OutreachRecordController::class
                     );
                 });
 
@@ -150,6 +165,14 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                         '/engagement-profiles/{user}',
                         [EngagementProfileController::class, 'show']
                     );
+                    Route::get(
+                        '/engagement-profiles/me/pdf',
+                        [EngagementProfileController::class, 'downloadMyPdf']
+                    )->name('engagement-profiles.me.pdf');
+                    Route::get(
+                        '/engagement-profiles/{user}/pdf',
+                        [EngagementProfileController::class, 'downloadPdf']
+                    )->name('engagement-profiles.pdf');
                     Route::get(
                         '/engagement-records',
                         [EngagementRecordController::class, 'index']

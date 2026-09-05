@@ -8,6 +8,7 @@ import engagementRecordService from "@/services/engagementRecordService";
 const route = useRoute();
 const profile = ref(null);
 const loading = ref(false);
+const downloading = ref(false);
 const failure = ref("");
 const filters = reactive({ year: "", engagement_type: "", sdg: "", page: 1, per_page: 10 });
 const engagementTypes = ["outreach", "extension", "volunteerism", "service_learning", "training", "other"];
@@ -38,6 +39,32 @@ async function fetchProfile(page = 1) {
     }
 }
 
+async function downloadPdf() {
+    downloading.value = true;
+    failure.value = "";
+    try {
+        const response = await engagementRecordService.downloadProfilePdf(userId.value, {
+            year: filters.year || undefined,
+            engagement_type: filters.engagement_type || undefined,
+            sdg: filters.sdg || undefined,
+        });
+        const disposition = response.headers["content-disposition"] || "";
+        const matchedName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+        const url = URL.createObjectURL(response.data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = matchedName || "engagement-profile.pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        failure.value = error.response?.data?.message || "Unable to download the engagement profile.";
+    } finally {
+        downloading.value = false;
+    }
+}
+
 watch(userId, () => fetchProfile(1));
 onMounted(() => fetchProfile());
 </script>
@@ -46,12 +73,19 @@ onMounted(() => fetchProfile());
   <MainLayout>
     <section class="content">
       <div class="container-fluid py-3">
-        <div class="mb-3">
+        <div class="mb-3 d-flex justify-content-between align-items-start gap-3">
+          <div>
           <h1 class="h3 mb-1">{{ personName }}</h1>
           <p class="text-muted mb-0">
             {{ profile?.user?.college?.name || "No college assigned" }}
             <span v-if="profile?.user?.role?.name"> · {{ label(profile.user.role.name) }}</span>
           </p>
+          </div>
+          <button type="button" class="btn btn-success" :disabled="loading || downloading || !profile" @click="downloadPdf">
+            <span v-if="downloading" class="spinner-border spinner-border-sm me-1"></span>
+            <i v-else class="bi bi-file-earmark-pdf me-1"></i>
+            {{ downloading ? "Preparing PDF..." : "Download PDF" }}
+          </button>
         </div>
 
         <div v-if="failure" class="alert alert-danger">{{ failure }}</div>
