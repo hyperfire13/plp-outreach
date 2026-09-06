@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SurveyTemplate\StoreSurveyTemplateRequest;
 use App\Http\Requests\SurveyTemplate\UpdateSurveyTemplateRequest;
 use App\Models\SurveyTemplate;
 use App\Services\SurveyTemplateService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class SurveyTemplateController extends Controller
 {
     public function __construct(
         private readonly SurveyTemplateService $service
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -64,6 +65,29 @@ class SurveyTemplateController extends Controller
             'message' => 'Survey template retrieved successfully.',
             'data' => $this->service->find($surveyTemplate),
         ]);
+    }
+
+    public function downloadPdf(
+        SurveyTemplate $surveyTemplate
+    ): Response {
+        $surveyTemplate = $this->service->forPrintableForm(
+            $surveyTemplate
+        );
+
+        $filename = str($surveyTemplate->title)
+            ->slug('-')
+            ->limit(70, '')
+            ->append('-v'.$surveyTemplate->version.'-blank-form.pdf');
+
+        return Pdf::loadView('pdf.survey-form', [
+            'surveyTemplate' => $surveyTemplate,
+            'questionsBySection' => $surveyTemplate
+                ->activeQuestions
+                ->groupBy(fn ($question) => $question->section ?: 'General'),
+            'generatedAt' => now(),
+        ])
+            ->setPaper('a4', 'portrait')
+            ->download((string) $filename);
     }
 
     public function update(

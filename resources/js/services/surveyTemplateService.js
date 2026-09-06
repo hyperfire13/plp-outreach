@@ -21,6 +21,12 @@ export default {
 
     remove(id) {
         return api.delete(`${endpoint}/${id}`);
-    }
+    },
+
+    downloadPdf(id) {
+        return api.get(`${endpoint}/${id}/pdf`, {
+            responseType: "blob",
+        });
+    },
 
 }

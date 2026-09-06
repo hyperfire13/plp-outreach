@@ -44,6 +44,16 @@ class SurveyTemplateService
         ])->loadCount('responses');
     }
 
+    public function forPrintableForm(
+        SurveyTemplate $surveyTemplate
+    ): SurveyTemplate {
+        return $surveyTemplate->load([
+            'activeQuestions' => fn ($query) => $query
+                ->orderBy('sort_order')
+                ->orderBy('id'),
+        ]);
+    }
+
     public function store(
         array $data,
         ?int $userId
@@ -98,7 +108,7 @@ class SurveyTemplateService
                 if (
                     ($data['status'] ?? null) ===
                     SurveyTemplate::STATUS_PUBLISHED &&
-                    !$surveyTemplate->published_at
+                    ! $surveyTemplate->published_at
                 ) {
                     $data['published_at'] = now();
                 }

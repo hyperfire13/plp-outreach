@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import MainLayout from "@/components/layout/MainLayout.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
 import engagementRecordService from "@/services/engagementRecordService";
+import { downloadResponse } from "@/utils/downloadResponse";
 
 const route = useRoute();
 const profile = ref(null);
@@ -48,16 +49,7 @@ async function downloadPdf() {
             engagement_type: filters.engagement_type || undefined,
             sdg: filters.sdg || undefined,
         });
-        const disposition = response.headers["content-disposition"] || "";
-        const matchedName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
-        const url = URL.createObjectURL(response.data);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = matchedName || "engagement-profile.pdf";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
+        downloadResponse(response, "engagement-profile.pdf");
     } catch (error) {
         failure.value = error.response?.data?.message || "Unable to download the engagement profile.";
     } finally {

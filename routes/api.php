@@ -107,6 +107,10 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                         '/survey-templates/{survey_template}',
                         [SurveyTemplateController::class, 'show']
                     )->name('survey-templates.show');
+                    Route::get(
+                        '/survey-templates/{survey_template}/pdf',
+                        [SurveyTemplateController::class, 'downloadPdf']
+                    )->name('survey-templates.pdf');
                 });
 
             Route::middleware($roleMiddleware('survey_designers'))

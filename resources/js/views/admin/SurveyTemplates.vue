@@ -5,6 +5,7 @@ import CrudModal from "@/components/crud/CrudModal.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
 import surveyTemplateService from "../../services/surveyTemplateService";
 import MainLayout from '../../components/layout/MainLayout.vue'
+import { downloadResponse } from "@/utils/downloadResponse";
 
 
 
@@ -17,6 +18,7 @@ const submitting = ref(false);
 const modalRef = ref(null);
 const editingId = ref(null);
 const errors = ref({});
+const downloadingId = ref(null);
 
 
 const filters = reactive({
@@ -185,6 +187,26 @@ function manageQuestions(row) {
   });
 }
 
+async function downloadBlankForm(row) {
+  if (downloadingId.value !== null) {
+    return;
+  }
+
+  downloadingId.value = row.id;
+
+  try {
+    const response = await surveyTemplateService.downloadPdf(row.id);
+    downloadResponse(response, `survey-template-v${row.version}.pdf`);
+  } catch (error) {
+    window.alert(
+      error.response?.data?.message ??
+        "Unable to download the blank survey form."
+    );
+  } finally {
+    downloadingId.value = null;
+  }
+}
+
 onMounted(fetchData);
 </script>
 
@@ -296,6 +318,19 @@ onMounted(fetchData);
                     </td>
 
                     <td class="text-end">
+                      <button
+                        class="btn btn-sm btn-outline-secondary me-1"
+                        title="Download blank survey form"
+                        :disabled="downloadingId !== null"
+                        @click="downloadBlankForm(row)"
+                      >
+                        <span
+                          v-if="downloadingId === row.id"
+                          class="spinner-border spinner-border-sm"
+                        ></span>
+                        <i v-else class="bi bi-file-earmark-pdf"></i>
+                      </button>
+
                       <button
                         class="btn btn-sm btn-outline-success me-1"
                         title="Manage questions"
