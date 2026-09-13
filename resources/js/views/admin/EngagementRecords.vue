@@ -33,6 +33,7 @@ const filters = reactive({
 
 const blankForm = () => ({
     user_id: authStore.userId || "",
+    user_ids: [],
     outreach_project_id: "",
     community_id: "",
     title: "",
@@ -133,7 +134,7 @@ function openEdit(record) {
 }
 
 function normalizedPayload() {
-    return {
+    const payload = {
         ...form,
         user_id: Number(form.user_id),
         outreach_project_id: form.outreach_project_id
@@ -143,6 +144,15 @@ function normalizedPayload() {
         sdg: form.sdg || null,
         description: form.description || null,
     };
+
+    if (!editingId.value && hasRole(ROLES.COLLEGE_ADMIN)) {
+        payload.user_ids = form.user_ids.map(Number);
+        delete payload.user_id;
+    } else {
+        delete payload.user_ids;
+    }
+
+    return payload;
 }
 
 async function saveRecord() {
@@ -293,7 +303,18 @@ onMounted(async () => {
 
     <CrudModal ref="modal" :title="modalTitle" :form="form" :errors="errors" size="xl" @hidden="resetForm">
       <div class="row g-3">
-        <div class="col-md-6"><label class="form-label">Participant <span class="text-danger">*</span></label><select v-model="form.user_id" class="form-select"><option value="">Select participant</option><option v-for="person in options.participants" :key="person.id" :value="person.id">{{ personName(person) }}{{ person.college?.name ? ` — ${person.college.name}` : '' }}</option></select><small v-if="firstError('user_id')" class="text-danger">{{ firstError('user_id') }}</small></div>
+        <div class="col-md-6">
+          <label class="form-label">{{ !editingId && hasRole(ROLES.COLLEGE_ADMIN) ? 'Participants' : 'Participant' }} <span class="text-danger">*</span></label>
+          <select v-if="!editingId && hasRole(ROLES.COLLEGE_ADMIN)" v-model="form.user_ids" class="form-select" multiple size="6">
+            <option v-for="person in options.participants" :key="person.id" :value="person.id">{{ personName(person) }}{{ person.college?.name ? ` — ${person.college.name}` : '' }}</option>
+          </select>
+          <select v-else v-model="form.user_id" class="form-select">
+            <option value="">Select participant</option>
+            <option v-for="person in options.participants" :key="person.id" :value="person.id">{{ personName(person) }}{{ person.college?.name ? ` — ${person.college.name}` : '' }}</option>
+          </select>
+          <div v-if="!editingId && hasRole(ROLES.COLLEGE_ADMIN)" class="form-text">Use Ctrl/Cmd to select multiple participants.</div>
+          <small v-if="firstError('user_id') || firstError('user_ids')" class="text-danger">{{ firstError('user_id') || firstError('user_ids') }}</small>
+        </div>
         <div class="col-md-6"><label class="form-label">Activity Title <span class="text-danger">*</span></label><input v-model.trim="form.title" class="form-control"><small v-if="firstError('title')" class="text-danger">{{ firstError('title') }}</small></div>
         <div class="col-md-4"><label class="form-label">Engagement Type <span class="text-danger">*</span></label><select v-model="form.engagement_type" class="form-select"><option value="">Select type</option><option v-for="type in options.engagement_types" :key="type" :value="type">{{ label(type) }}</option></select><small v-if="firstError('engagement_type')" class="text-danger">{{ firstError('engagement_type') }}</small></div>
         <div class="col-md-4"><label class="form-label">Participation Role <span class="text-danger">*</span></label><input v-model.trim="form.participation_role" class="form-control" placeholder="Volunteer, facilitator, organizer..."><small v-if="firstError('participation_role')" class="text-danger">{{ firstError('participation_role') }}</small></div>

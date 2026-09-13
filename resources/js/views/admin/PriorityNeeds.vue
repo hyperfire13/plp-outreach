@@ -4,6 +4,13 @@ import CrudPagination from "@/components/crud/CrudPagination.vue";
 import MainLayout from "@/components/layout/MainLayout.vue";
 import communityService from "@/services/communityServices";
 import priorityNeedService from "@/services/priorityNeedService";
+import { useAuthorization } from "@/composables/useAuthorization";
+import { ROLE_GROUPS } from "@/constants/roles";
+
+const { canAccessRoles } = useAuthorization();
+const canReview = canAccessRoles(ROLE_GROUPS.PRIORITY_NEED_REVIEWERS);
+const notice = ref("");
+const failure = ref("");
 
 const rows = ref([]);
 const summary = ref([]);
@@ -50,6 +57,21 @@ async function fetchData(page = 1) {
   }
 }
 
+async function reviewNeed(row, decision) {
+  const remarks = decision === "reject"
+    ? window.prompt("Reason for rejection:")
+    : null;
+  if (decision === "reject" && !remarks?.trim()) return;
+  try {
+    const method = decision === "validate" ? "validate" : "reject";
+    const response = await priorityNeedService[method](row.id, remarks);
+    notice.value = response.data.message;
+    await fetchData(pagination.value.current_page || 1);
+  } catch (error) {
+    failure.value = error.response?.data?.message || "Unable to review priority need.";
+  }
+}
+
 onMounted(async () => {
   await loadCommunities();
   await fetchData();
@@ -66,6 +88,9 @@ onMounted(async () => {
           Review the highest-priority community needs from submitted surveys.
         </p>
       </div>
+
+      <div v-if="notice" class="alert alert-success">{{ notice }}</div>
+      <div v-if="failure" class="alert alert-danger">{{ failure }}</div>
 
       <div class="card mb-3">
         <div class="card-body">
@@ -182,6 +207,8 @@ onMounted(async () => {
                   <th>Community</th>
                   <th>Survey Date</th>
                   <th>Description</th>
+                  <th>Status</th>
+                  <th v-if="canReview" class="text-end">Actions</th>
                 </tr>
               </thead>
 
@@ -200,10 +227,15 @@ onMounted(async () => {
                   <td>{{ row.response?.survey_date }}</td>
 
                   <td>{{ row.description || "—" }}</td>
+                  <td><span class="badge text-bg-secondary">{{ row.status || "pending" }}</span></td>
+                  <td v-if="canReview" class="text-end text-nowrap">
+                    <button v-if="row.status !== 'validated'" class="btn btn-sm btn-outline-success me-1" @click="reviewNeed(row, 'validate')">Validate</button>
+                    <button v-if="row.status !== 'rejected'" class="btn btn-sm btn-outline-danger" @click="reviewNeed(row, 'reject')">Reject</button>
+                  </td>
                 </tr>
 
                 <tr v-if="rows.length === 0">
-                  <td colspan="5" class="text-center py-5 text-muted">
+                  <td :colspan="canReview ? 7 : 6" class="text-center py-5 text-muted">
                     No priority needs found.
                   </td>
                 </tr>

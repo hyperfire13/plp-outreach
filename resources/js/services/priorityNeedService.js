@@ -12,6 +12,8 @@ export default {
         return api.get(`${endpoint}/summary`, {
             params
         });
-    }
+    },
+    validate(id, remarks = null) { return api.post(`${endpoint}/${id}/validate`, { remarks }); },
+    reject(id, remarks) { return api.post(`${endpoint}/${id}/reject`, { remarks }); }
 
 }

@@ -28,6 +28,15 @@
         </ul>
 
         <ul class="navbar-nav ms-auto">
+          <li class="nav-item dropdown">
+            <a href="#" class="nav-link text-white position-relative" data-bs-toggle="dropdown" aria-label="Notifications" @click="loadNotifications">
+              <i class="bi bi-bell"></i><span v-if="unreadCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-end p-0" style="min-width: 320px; max-width: 380px">
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom"><strong>Notifications</strong><button v-if="unreadCount" class="btn btn-sm btn-link" @click="markAllNotificationsRead">Mark all read</button></div>
+              <div class="overflow-auto" style="max-height: 360px"><button v-for="item in notifications" :key="item.id" class="dropdown-item text-wrap border-bottom py-2" :class="{'bg-light': !item.read_at}" @click="openNotification(item)"><span class="small">{{ item.data?.message }}</span><span class="d-block text-muted small">{{ item.data?.proposal_number }}</span></button><div v-if="!notifications.length" class="text-muted text-center py-4">No notifications</div></div>
+            </div>
+          </li>
           <li class="nav-item">
             <a class="nav-link text-white" href="#" data-lte-toggle="fullscreen">
               <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
@@ -156,6 +165,11 @@
                     <p>Colleges</p>
                   </RouterLink>
                 </li>
+                <li v-if="canViewAuditLogs" class="nav-item">
+                  <RouterLink :to="{ name: 'audit-logs' }" class="nav-link text-white" active-class="active" @click="closeSidebarOnMobile">
+                    <i class="nav-icon bi bi-clock-history"></i><p>Audit Trail</p>
+                  </RouterLink>
+                </li>
 
                 <li v-if="hasOutreachAccess" class="nav-header text-white">
                   <b>OUTREACH MANAGEMENT</b>
@@ -251,6 +265,12 @@
               </ul>
             </li>
 
+            <li v-if="canViewProjectProposals" class="nav-item">
+              <RouterLink :to="{ name: 'project-proposals' }" class="nav-link text-white" active-class="active" @click="closeSidebarOnMobile">
+                <i class="nav-icon bi bi-file-earmark-check"></i><p>Project Applications</p>
+              </RouterLink>
+            </li>
+
             <li
               v-if="hasEngagementAccess"
               class="nav-item"
@@ -311,8 +331,11 @@ import { useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useAuthorization } from "@/composables/useAuthorization";
 import { ROLE_GROUPS } from "@/constants/roles";
+import api from "@/api/axios";
+import { useRouter } from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const { canAccessRoles } = useAuthorization();
 
@@ -322,6 +345,14 @@ const windowWidth = ref(window.innerWidth);
 const settingsOpen = ref(false);
 const engagementOpen = ref(false);
 const signingOut = ref(false);
+const notifications = ref([]);
+const unreadCount = ref(0);
+
+async function loadNotifications() {
+  try { const response = await api.get('/notifications'); notifications.value = response.data.data.data; unreadCount.value = response.data.unread_count; } catch { /* Navigation remains usable if notifications fail. */ }
+}
+async function markAllNotificationsRead() { await api.post('/notifications/read-all'); notifications.value.forEach(item => { item.read_at = item.read_at || new Date().toISOString(); }); unreadCount.value = 0; }
+async function openNotification(item) { if (!item.read_at) { await api.post(`/notifications/${item.id}/read`); item.read_at = new Date().toISOString(); unreadCount.value = Math.max(0, unreadCount.value - 1); } if (item.data?.project_proposal_id) router.push({name:'project-proposals'}); }
 
 const isMobile = computed(() => windowWidth.value < 992);
 
@@ -355,9 +386,15 @@ const canViewPriorityNeeds = computed(() =>
 const canViewEngagements = computed(() =>
   canAccessRoles(ROLE_GROUPS.ENGAGEMENT_VIEWERS),
 );
+const canViewProjectProposals = computed(() =>
+  canAccessRoles(ROLE_GROUPS.PROPOSAL_VIEWERS),
+);
+const canViewAuditLogs = computed(() =>
+  canAccessRoles(ROLE_GROUPS.AUDIT_VIEWERS),
+);
 
 const hasSystemSettingsAccess = computed(() =>
-  canManageUsers.value || canManageColleges.value,
+  canManageUsers.value || canManageColleges.value || canViewAuditLogs.value,
 );
 const hasOutreachAccess = computed(() =>
   canViewPrograms.value || canViewProjects.value || canViewOutreachRecords.value,
@@ -409,6 +446,7 @@ const settingsRouteNames = [
   "admin-survey-responses-edit",
   "admin-survey-responses-view",
   "admin-priority-needs",
+  "audit-logs",
 ];
 
 const engagementRouteNames = [
@@ -497,6 +535,7 @@ watch(
 );
 
 onMounted(() => {
+  loadNotifications();
   window.addEventListener("resize", handleResize);
   updateSidebarClasses();
 });

@@ -108,6 +108,10 @@ const columns = [
         label: 'Category'
     },
     {
+        key: 'creator_name',
+        label: 'Created By'
+    },
+    {
         key: 'budget_display',
         label: 'Typical Budget'
     },
@@ -169,6 +173,11 @@ const fields = computed(() => [
 const formattedPrograms = computed(() => {
     return (programs.value.data || []).map(program => ({
         ...program,
+        creator_name: program.creator?.full_name || [
+            program.creator?.first_name,
+            program.creator?.middle_name,
+            program.creator?.last_name
+        ].filter(Boolean).join(' ') || 'Legacy record',
         budget_display: formatMoney(program.typical_budget),
         duration_display: formatDuration(
             program.typical_duration_days

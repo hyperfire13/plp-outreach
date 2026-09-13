@@ -196,6 +196,18 @@ const routes = [
         },
     },
     {
+        path: "/project-proposals",
+        name: "project-proposals",
+        component: () => import("@/views/admin/ProjectProposals.vue"),
+        meta: { title: "Project Applications", requiresAuth: true, roles: ROLE_GROUPS.PROPOSAL_VIEWERS },
+    },
+    {
+        path: "/audit-logs",
+        name: "audit-logs",
+        component: () => import("@/views/admin/AuditLogs.vue"),
+        meta: { title: "Audit Trail", requiresAuth: true, roles: ROLE_GROUPS.AUDIT_VIEWERS },
+    },
+    {
         path: "/forbidden",
         name: "forbidden",
         component: () =>

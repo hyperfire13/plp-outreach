@@ -17,10 +17,13 @@ class StoreEngagementRecordRequest extends FormRequest
     {
         return [
             'user_id' => [
-                'required',
+                'nullable',
+                'required_without:user_ids',
                 'integer',
                 Rule::exists('users', 'id'),
             ],
+            'user_ids' => ['nullable', 'required_without:user_id', 'array', 'min:1', 'max:100'],
+            'user_ids.*' => ['required', 'integer', 'distinct', Rule::exists('users', 'id')],
             'outreach_project_id' => [
                 'nullable',
                 'integer',

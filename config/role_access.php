@@ -136,4 +136,19 @@ return [
         'calo_administrator',
         'monitoring_evaluation_team',
     ],
+
+    'proposal_viewers' => [
+        'super_admin', 'calo_administrator', 'calo_staff', 'college_admin',
+        'coordinator', 'project_proponent', 'faculty_extension_coordinator',
+        'college_department_head', 'student_volunteer',
+        'academic_affairs_officer', 'vice_president_academic_affairs', 'university_president',
+    ],
+
+    'proposal_applicants' => [
+        'college_admin', 'coordinator', 'project_proponent',
+        'faculty_extension_coordinator', 'student_volunteer',
+    ],
+
+    'priority_need_reviewers' => ['super_admin', 'calo_administrator', 'monitoring_evaluation_team'],
+    'audit_viewers' => ['super_admin', 'calo_administrator'],
 ];

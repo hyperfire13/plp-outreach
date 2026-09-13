@@ -6,9 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Services\PriorityNeedService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\PriorityNeed;
 
 class PriorityNeedController extends Controller
 {
+    public function validateNeed(Request $request, PriorityNeed $priorityNeed): JsonResponse
+    {
+        $priorityNeed->update(['status'=>'validated','validated_by'=>$request->user()->id,'validated_at'=>now(),'validation_remarks'=>$request->input('remarks')]);
+        return response()->json(['message'=>'Priority need validated successfully.','data'=>$priorityNeed->load('validator')]);
+    }
+
+    public function rejectNeed(Request $request, PriorityNeed $priorityNeed): JsonResponse
+    {
+        $data=$request->validate(['remarks'=>['required','string','max:5000']]);
+        $priorityNeed->update(['status'=>'rejected','validated_by'=>$request->user()->id,'validated_at'=>now(),'validation_remarks'=>$data['remarks']]);
+        return response()->json(['message'=>'Priority need rejected successfully.','data'=>$priorityNeed->load('validator')]);
+    }
     public function __construct(
         private readonly PriorityNeedService $service
     ) {

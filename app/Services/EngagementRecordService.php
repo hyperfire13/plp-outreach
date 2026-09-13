@@ -10,6 +10,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
 class EngagementRecordService
@@ -215,6 +216,23 @@ class EngagementRecordService
 
             return $this->find(EngagementRecord::create($data));
         });
+    }
+
+    public function storeMany(User $authUser, array $data): Collection
+    {
+        $participantIds = collect($data['user_ids'] ?? [$data['user_id']])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        unset($data['user_ids']);
+
+        return DB::transaction(fn () => $participantIds->map(
+            fn (int $participantId) => $this->store($authUser, [
+                ...$data,
+                'user_id' => $participantId,
+            ])
+        ));
     }
 
     public function update(
