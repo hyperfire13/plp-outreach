@@ -20,8 +20,8 @@ use Illuminate\Support\Facades\Route;
 
 $roleMiddleware = static fn (string $group): string => 'role:'.implode(',', config("role_access.{$group}"));
 
-Route::prefix('v1')->group(function () use ($roleMiddleware) {
-    Route::middleware('throttle:5,1')->group(function () {
+Route::prefix('v1')->middleware('throttle:api')->group(function () use ($roleMiddleware) {
+    Route::middleware('throttle:login')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
 
@@ -35,7 +35,7 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
             Route::put(
                 '/profile/password',
                 [ProfileController::class, 'updatePassword']
-            )->middleware('throttle:5,1');
+            )->middleware('throttle:sensitive');
 
             Route::middleware($roleMiddleware('user_managers'))
                 ->group(function () {
@@ -110,7 +110,8 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                     Route::get(
                         '/survey-templates/{survey_template}/pdf',
                         [SurveyTemplateController::class, 'downloadPdf']
-                    )->name('survey-templates.pdf');
+                    )->middleware('throttle:pdf-downloads')
+                        ->name('survey-templates.pdf');
                 });
 
             Route::middleware($roleMiddleware('survey_designers'))
@@ -172,11 +173,13 @@ Route::prefix('v1')->group(function () use ($roleMiddleware) {
                     Route::get(
                         '/engagement-profiles/me/pdf',
                         [EngagementProfileController::class, 'downloadMyPdf']
-                    )->name('engagement-profiles.me.pdf');
+                    )->middleware('throttle:pdf-downloads')
+                        ->name('engagement-profiles.me.pdf');
                     Route::get(
                         '/engagement-profiles/{user}/pdf',
                         [EngagementProfileController::class, 'downloadPdf']
-                    )->name('engagement-profiles.pdf');
+                    )->middleware('throttle:pdf-downloads')
+                        ->name('engagement-profiles.pdf');
                     Route::get(
                         '/engagement-records',
                         [EngagementRecordController::class, 'index']
