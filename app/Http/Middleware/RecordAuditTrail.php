@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use App\Services\AuditTrailService;
@@ -15,7 +16,9 @@ class RecordAuditTrail
     public function handle(Request $request, Closure $next): Response
     {
         $requestId = $request->header('X-Request-ID');
-        if (!is_string($requestId) || !preg_match('/^[A-Za-z0-9._-]{1,64}$/', $requestId)) $requestId = (string) Str::uuid();
+        if (! is_string($requestId) || ! preg_match('/^[A-Za-z0-9._-]{1,64}$/', $requestId)) {
+            $requestId = (string) Str::uuid();
+        }
         $request->attributes->set('request_id', $requestId);
         $response = $next($request);
         $response->headers->set('X-Request-ID', $requestId);
@@ -24,8 +27,11 @@ class RecordAuditTrail
             try {
                 $segment = (string) ($request->segment(3) ?: 'system');
                 $this->auditTrail->record($request->user(), strtolower($request->method()), str_replace('-', '_', $segment), sprintf('%s %s', $request->method(), $request->path()), null, null, $request->except(['file', 'documents']), $request);
-            } catch (Throwable $exception) { report($exception); }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
+
         return $response;
     }
 }

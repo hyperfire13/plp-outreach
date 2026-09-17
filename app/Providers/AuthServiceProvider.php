@@ -4,11 +4,11 @@ namespace App\Providers;
 
 use App\Models\OutreachProgram;
 use App\Models\OutreachRecord;
-use App\Models\User;
 use App\Models\ProjectProposal;
-use App\Policies\ProjectProposalPolicy;
+use App\Models\User;
 use App\Policies\OutreachProgramPolicy;
 use App\Policies\OutreachRecordPolicy;
+use App\Policies\ProjectProposalPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 

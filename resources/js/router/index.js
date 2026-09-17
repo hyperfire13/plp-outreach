@@ -51,8 +51,7 @@ const routes = [
     {
         path: "/outreach-programs",
         name: "outreach-programs",
-        component: () =>
-            import("../pages/OutreachPrograms.vue"),
+        component: () => import("../pages/OutreachPrograms.vue"),
         meta: {
             requiresAuth: true,
             roles: ROLE_GROUPS.PROGRAM_VIEWERS,
@@ -61,8 +60,7 @@ const routes = [
     {
         path: "/outreach-projects",
         name: "outreach-projects",
-        component: () =>
-            import("../pages/OutreachProjects.vue"),
+        component: () => import("../pages/OutreachProjects.vue"),
         meta: {
             requiresAuth: true,
             roles: ROLE_GROUPS.PROJECT_VIEWERS,
@@ -72,101 +70,95 @@ const routes = [
         path: "/outreach-records",
         name: "outreach-records",
         component: () => import("../pages/OutreachRecords.vue"),
-        meta: { requiresAuth: true, roles: ROLE_GROUPS.OUTREACH_RECORD_VIEWERS },
+        meta: {
+            requiresAuth: true,
+            roles: ROLE_GROUPS.OUTREACH_RECORD_VIEWERS,
+        },
     },
     {
-  path: "/communities",
-  name: "admin-communities",
-  component: () =>
-    import("@/views/admin/Communities.vue"),
-  meta: {
-    title: "Communities",
-    requiresAuth: true,
-    roles: ROLE_GROUPS.COMMUNITY_MANAGERS,
-  },
+        path: "/communities",
+        name: "admin-communities",
+        component: () => import("@/views/admin/Communities.vue"),
+        meta: {
+            title: "Communities",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.COMMUNITY_MANAGERS,
+        },
     },
     {
-    path: "/survey-templates",
-    name: "admin-survey-templates",
-    component: () =>
-        import("@/views/admin/SurveyTemplates.vue"),
-    meta: {
-        title: "Survey Templates",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_DESIGNERS,
-    },
-    },
-    {
-    path: "/survey-questions",
-    name: "admin-survey-questions",
-    component: () =>
-        import("@/views/admin/SurveyQuestions.vue"),
-    meta: {
-        title: "Survey Questions",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_DESIGNERS,
-    },
+        path: "/survey-templates",
+        name: "admin-survey-templates",
+        component: () => import("@/views/admin/SurveyTemplates.vue"),
+        meta: {
+            title: "Survey Templates",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_DESIGNERS,
+        },
     },
     {
-    path: "/survey-responses",
-    name: "admin-survey-responses",
-    component: () =>
-        import("@/views/admin/SurveyResponses.vue"),
-    meta: {
-        title: "Survey Responses",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
-    },
-    },
-    {
-    path: "/survey-responses/create",
-    name: "admin-survey-responses-create",
-    component: () =>
-        import("@/views/admin/SurveyResponseCreate.vue"),
-    meta: {
-        title: "Conduct Survey",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
-    },
+        path: "/survey-questions",
+        name: "admin-survey-questions",
+        component: () => import("@/views/admin/SurveyQuestions.vue"),
+        meta: {
+            title: "Survey Questions",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_DESIGNERS,
+        },
     },
     {
-    path: "/survey-responses/:id/edit",
-    name: "admin-survey-responses-edit",
-    component: () =>
-        import("@/views/admin/SurveyResponseCreate.vue"),
-    meta: {
-        title: "Edit Survey Response",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
-    },
-    },
-    {
-    path: "/survey-responses/:id",
-    name: "admin-survey-responses-view",
-    component: () =>
-        import("@/views/admin/SurveyResponseView.vue"),
-    meta: {
-        title: "Survey Response",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
-    },
+        path: "/survey-responses",
+        name: "admin-survey-responses",
+        component: () => import("@/views/admin/SurveyResponses.vue"),
+        meta: {
+            title: "Survey Responses",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
+        },
     },
     {
-    path: "/priority-needs",
-    name: "admin-priority-needs",
-    component: () =>
-        import("@/views/admin/PriorityNeeds.vue"),
-    meta: {
-        title: "Priority Needs",
-        requiresAuth: true,
-        roles: ROLE_GROUPS.PRIORITY_NEED_VIEWERS,
+        path: "/survey-responses/create",
+        name: "admin-survey-responses-create",
+        component: () => import("@/views/admin/SurveyResponseCreate.vue"),
+        meta: {
+            title: "Conduct Survey",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
+        },
     },
+    {
+        path: "/survey-responses/:id/edit",
+        name: "admin-survey-responses-edit",
+        component: () => import("@/views/admin/SurveyResponseCreate.vue"),
+        meta: {
+            title: "Edit Survey Response",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
+        },
+    },
+    {
+        path: "/survey-responses/:id",
+        name: "admin-survey-responses-view",
+        component: () => import("@/views/admin/SurveyResponseView.vue"),
+        meta: {
+            title: "Survey Response",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.SURVEY_RESPONDENTS,
+        },
+    },
+    {
+        path: "/priority-needs",
+        name: "admin-priority-needs",
+        component: () => import("@/views/admin/PriorityNeeds.vue"),
+        meta: {
+            title: "Priority Needs",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.PRIORITY_NEED_VIEWERS,
+        },
     },
     {
         path: "/engagement-records",
         name: "admin-engagement-records",
-        component: () =>
-            import("@/views/admin/EngagementRecords.vue"),
+        component: () => import("@/views/admin/EngagementRecords.vue"),
         meta: {
             title: "Engagement Records",
             requiresAuth: true,
@@ -176,8 +168,7 @@ const routes = [
     {
         path: "/engagement-profile",
         name: "engagement-profile-me",
-        component: () =>
-            import("@/views/admin/EngagementProfile.vue"),
+        component: () => import("@/views/admin/EngagementProfile.vue"),
         meta: {
             title: "My Engagement Profile",
             requiresAuth: true,
@@ -187,8 +178,7 @@ const routes = [
     {
         path: "/engagement-profiles/:userId",
         name: "engagement-profile-view",
-        component: () =>
-            import("@/views/admin/EngagementProfile.vue"),
+        component: () => import("@/views/admin/EngagementProfile.vue"),
         meta: {
             title: "Engagement Profile",
             requiresAuth: true,
@@ -199,19 +189,26 @@ const routes = [
         path: "/project-proposals",
         name: "project-proposals",
         component: () => import("@/views/admin/ProjectProposals.vue"),
-        meta: { title: "Project Applications", requiresAuth: true, roles: ROLE_GROUPS.PROPOSAL_VIEWERS },
+        meta: {
+            title: "Project Applications",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.PROPOSAL_VIEWERS,
+        },
     },
     {
         path: "/audit-logs",
         name: "audit-logs",
         component: () => import("@/views/admin/AuditLogs.vue"),
-        meta: { title: "Audit Trail", requiresAuth: true, roles: ROLE_GROUPS.AUDIT_VIEWERS },
+        meta: {
+            title: "Audit Trail",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.AUDIT_VIEWERS,
+        },
     },
     {
         path: "/forbidden",
         name: "forbidden",
-        component: () =>
-            import("../pages/Forbidden.vue"),
+        component: () => import("../pages/Forbidden.vue"),
     },
     {
         path: "/:pathMatch(.*)*",
@@ -231,10 +228,7 @@ router.beforeEach(async (to) => {
      * Do not call /me unnecessarily when visiting
      * a public route without a token.
      */
-    if (
-        !authStore.initialized &&
-        authStore.token
-    ) {
+    if (!authStore.initialized && authStore.token) {
         try {
             await authStore.fetchUser();
         } catch {
@@ -249,10 +243,7 @@ router.beforeEach(async (to) => {
         authStore.initialized = true;
     }
 
-    if (
-        to.meta.requiresAuth &&
-        !authStore.isAuthenticated
-    ) {
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         return {
             name: "login",
             query: {
@@ -261,26 +252,17 @@ router.beforeEach(async (to) => {
         };
     }
 
-    if (
-        Array.isArray(to.meta.roles) &&
-        to.meta.roles.length > 0
-    ) {
+    if (Array.isArray(to.meta.roles) && to.meta.roles.length > 0) {
         const userRole = authStore.role;
 
-        if (
-            !userRole ||
-            !to.meta.roles.includes(userRole)
-        ) {
+        if (!userRole || !to.meta.roles.includes(userRole)) {
             return {
                 name: "forbidden",
             };
         }
     }
 
-    if (
-        to.name === "login" &&
-        authStore.isAuthenticated
-    ) {
+    if (to.name === "login" && authStore.isAuthenticated) {
         return {
             name: "dashboard",
         };

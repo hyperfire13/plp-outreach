@@ -34,16 +34,16 @@ class UserSeederTest extends TestCase
         $this->assertSame(10, $roles->count());
         $this->assertSame(106, User::query()->count());
         $systemUsers = User::query()->whereHas(
-                'role',
-                fn ($query) => $query->whereIn('name', [
-                    'super_admin',
-                    'calo_administrator',
-                    'calo_staff',
-                    'academic_affairs_officer',
-                    'vice_president_academic_affairs',
-                    'university_president',
-                ])
-            )->get();
+            'role',
+            fn ($query) => $query->whereIn('name', [
+                'super_admin',
+                'calo_administrator',
+                'calo_staff',
+                'academic_affairs_officer',
+                'vice_president_academic_affairs',
+                'university_president',
+            ])
+        )->get();
 
         $this->assertCount(6, $systemUsers);
         $this->assertTrue($systemUsers->every(

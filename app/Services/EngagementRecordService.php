@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\EngagementRecord;
 use App\Models\Community;
+use App\Models\EngagementRecord;
 use App\Models\OutreachProject;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class EngagementRecordService

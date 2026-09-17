@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\AuditLog;
@@ -25,10 +26,15 @@ class AuditTrailService
 
     private function sanitize(?array $values): ?array
     {
-        if ($values === null) return null;
+        if ($values === null) {
+            return null;
+        }
         array_walk_recursive($values, function (&$value, $key): void {
-            if (in_array(strtolower((string) $key), self::SENSITIVE_KEYS, true)) $value = '[REDACTED]';
+            if (in_array(strtolower((string) $key), self::SENSITIVE_KEYS, true)) {
+                $value = '[REDACTED]';
+            }
         });
+
         return $values;
     }
 }

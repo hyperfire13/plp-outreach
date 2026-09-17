@@ -1,24 +1,24 @@
 <?php
 
+use App\Http\Controllers\API\AuditLogController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\CommunityController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\EngagementProfileController;
 use App\Http\Controllers\API\EngagementRecordController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
 use App\Http\Controllers\API\OutreachRecordController;
 use App\Http\Controllers\API\PriorityNeedController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\ProjectProposalController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SurveyQuestionController;
 use App\Http\Controllers\API\SurveyResponseController;
 use App\Http\Controllers\API\SurveyTemplateController;
 use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\AuditLogController;
-use App\Http\Controllers\API\ProjectProposalController;
-use App\Http\Controllers\API\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 $roleMiddleware = static fn (string $group): string => 'role:'.implode(',', config("role_access.{$group}"));
