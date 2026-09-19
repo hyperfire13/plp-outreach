@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import MainLayout from "@/components/layout/MainLayout.vue";
 import CrudModal from "@/components/crud/CrudModal.vue";
 import CrudPagination from "@/components/crud/CrudPagination.vue";
@@ -10,7 +10,12 @@ const { canAccessRoles } = useAuthorization();
 const modal = ref(null),
     detailModal = ref(null),
     rows = ref([]),
-    options = ref({ priority_needs: [], statuses: [] }),
+    options = ref({
+        communities: [],
+        priority_needs: [],
+        survey_responses: [],
+        statuses: [],
+    }),
     pagination = ref({ current_page: 1, last_page: 1 }),
     selected = ref(null),
     editingId = ref(null),
@@ -23,6 +28,7 @@ const filters = reactive({ search: "", status: "", page: 1, per_page: 10 });
 const documentType = ref("other"),
     documentFile = ref(null);
 const blank = () => ({
+    community_id: "",
     priority_need_id: "",
     title: "",
     rationale: "",
@@ -44,6 +50,17 @@ const form = reactive(blank());
 const canCreate = computed(() =>
     canAccessRoles(ROLE_GROUPS.PROPOSAL_APPLICANTS),
 );
+const selectedCommunityNeeds = computed(() =>
+    options.value.priority_needs.filter(
+        (need) => Number(need.community_id) === Number(form.community_id),
+    ),
+);
+const selectedCommunityResponses = computed(() =>
+    options.value.survey_responses.filter(
+        (response) =>
+            Number(response.community_id) === Number(form.community_id),
+    ),
+);
 const label = (v) =>
     (v || "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 const person = (p) =>
@@ -52,6 +69,14 @@ const person = (p) =>
     "Unknown";
 const firstError = (k) =>
     Array.isArray(errors.value[k]) ? errors.value[k][0] : errors.value[k];
+const displayAnswer = (value) => {
+    if (Array.isArray(value)) return value.join(", ");
+    if (value === true) return "Yes";
+    if (value === false) return "No";
+    if (value === null || value === undefined || value === "") return "—";
+
+    return String(value);
+};
 async function load(page = 1) {
     loading.value = true;
     filters.page = page;
@@ -86,7 +111,9 @@ async function openDetail(row) {
 }
 async function openEdit() {
     editingId.value = selected.value.id;
-    Object.assign(form, blank(), selected.value);
+    Object.assign(form, blank(), selected.value, {
+        community_id: selected.value.community_id,
+    });
     detailModal.value?.close();
     modal.value?.open();
 }
@@ -101,6 +128,7 @@ async function save() {
             resources: form.resources || [],
             workplans: form.workplans || [],
         };
+        delete payload.community_id;
         const r = editingId.value
             ? await projectProposalService.update(editingId.value, payload)
             : await projectProposalService.store(payload);
@@ -176,6 +204,21 @@ async function deleteDocument(document) {
         await projectProposalService.find(selected.value.id)
     ).data;
 }
+watch(
+    () => form.community_id,
+    () => {
+        const selectedNeed = options.value.priority_needs.find(
+            (need) => Number(need.id) === Number(form.priority_need_id),
+        );
+
+        if (
+            selectedNeed &&
+            Number(selectedNeed.community_id) !== Number(form.community_id)
+        ) {
+            form.priority_need_id = "";
+        }
+    },
+);
 onMounted(() => load());
 </script>
 <template>
@@ -319,14 +362,35 @@ onMounted(() => load());
             size="xl"
             ><div class="row g-3">
                 <div class="col-12">
+                    <label class="form-label">Community *</label>
+                    <select v-model="form.community_id" class="form-select">
+                        <option value="">Select community</option>
+                        <option
+                            v-for="community in options.communities"
+                            :key="community.id"
+                            :value="community.id"
+                        >
+                            {{ community.name }}
+                            <template v-if="community.city">
+                                — {{ community.city }}
+                            </template>
+                        </option>
+                    </select>
+                    <div class="form-text">
+                        Select a community to review its validated needs and
+                        submitted survey findings.
+                    </div>
+                </div>
+                <div class="col-12">
                     <label class="form-label">Validated Community Need *</label
                     ><select
                         v-model="form.priority_need_id"
                         class="form-select"
+                        :disabled="!form.community_id"
                     >
                         <option value="">Select validated need</option>
                         <option
-                            v-for="n in options.priority_needs"
+                            v-for="n in selectedCommunityNeeds"
                             :key="n.id"
                             :value="n.id"
                         >
@@ -335,6 +399,120 @@ onMounted(() => load());
                     ><small class="text-danger">{{
                         firstError("priority_need_id")
                     }}</small>
+                    <div
+                        v-if="
+                            form.community_id && !selectedCommunityNeeds.length
+                        "
+                        class="form-text text-warning"
+                    >
+                        This community has no validated priority need yet, so a
+                        proposal cannot be created for it.
+                    </div>
+                </div>
+                <div class="col-12">
+                    <section class="card bg-light border-0">
+                        <div class="card-body">
+                            <h5 class="card-title mb-1">
+                                Community Needs and Survey Insights
+                            </h5>
+                            <p class="small text-muted mb-3">
+                                Use these verified findings as guidance when
+                                preparing the proposal.
+                            </p>
+                            <div v-if="!form.community_id" class="text-muted">
+                                Select a community to display its information.
+                            </div>
+                            <div v-else class="community-insights">
+                                <div class="mb-3">
+                                    <h6>Validated Priority Needs</h6>
+                                    <ul
+                                        v-if="selectedCommunityNeeds.length"
+                                        class="mb-0"
+                                    >
+                                        <li
+                                            v-for="need in selectedCommunityNeeds"
+                                            :key="need.id"
+                                            class="mb-2"
+                                        >
+                                            <strong>{{ need.need }}</strong>
+                                            <span v-if="need.priority_rank">
+                                                (Priority
+                                                {{ need.priority_rank }})
+                                            </span>
+                                            <div
+                                                v-if="need.description"
+                                                class="small text-muted"
+                                            >
+                                                {{ need.description }}
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <p v-else class="text-muted mb-0">
+                                        No validated priority needs found.
+                                    </p>
+                                </div>
+                                <h6>Submitted Survey Findings</h6>
+                                <article
+                                    v-for="response in selectedCommunityResponses"
+                                    :key="response.id"
+                                    class="border rounded bg-white p-3 mb-3"
+                                >
+                                    <div class="small text-muted mb-2">
+                                        {{
+                                            response.template?.title || "Survey"
+                                        }}
+                                        <span v-if="response.survey_date">
+                                            · {{ response.survey_date }}
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong
+                                            >Suggested outreach program:</strong
+                                        >
+                                        {{
+                                            response.suggested_outreach_program ||
+                                            "No suggestion provided"
+                                        }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Remarks:</strong>
+                                        {{
+                                            response.remarks ||
+                                            "No remarks provided"
+                                        }}
+                                    </div>
+                                    <dl class="row small mb-0">
+                                        <template
+                                            v-for="answer in response.answers"
+                                            :key="answer.id"
+                                        >
+                                            <dt class="col-md-6 fw-semibold">
+                                                <span
+                                                    v-if="answer.section"
+                                                    class="text-muted"
+                                                >
+                                                    {{ answer.section }} —
+                                                </span>
+                                                {{ answer.question }}
+                                            </dt>
+                                            <dd class="col-md-6">
+                                                {{
+                                                    displayAnswer(answer.value)
+                                                }}
+                                            </dd>
+                                        </template>
+                                    </dl>
+                                </article>
+                                <p
+                                    v-if="!selectedCommunityResponses.length"
+                                    class="text-muted mb-0"
+                                >
+                                    No submitted survey responses found for this
+                                    community.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
                 </div>
                 <div class="col-12">
                     <label class="form-label">Project Title *</label
@@ -531,3 +709,11 @@ onMounted(() => load());
         >
     </MainLayout>
 </template>
+
+<style scoped>
+.community-insights {
+    max-height: 28rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+</style>

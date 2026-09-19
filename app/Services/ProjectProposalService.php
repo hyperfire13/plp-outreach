@@ -2,9 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Community;
 use App\Models\NoticeToProceed;
 use App\Models\PriorityNeed;
 use App\Models\ProjectProposal;
+use App\Models\SurveyAnswer;
+use App\Models\SurveyResponse;
 use App\Models\User;
 use App\Notifications\ProjectProposalNotification;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +25,67 @@ class ProjectProposalService
 
     public function options(User $user): array
     {
-        return ['priority_needs' => PriorityNeed::query()->with('community:id,name')->where('status', 'validated')->latest()->get(['id', 'community_id', 'need', 'description']), 'statuses' => ProjectProposal::STATUSES, 'steps' => ProjectProposal::STEPS];
+        $priorityNeeds = PriorityNeed::query()
+            ->with('community:id,name')
+            ->where('status', 'validated')
+            ->orderBy('priority_rank')
+            ->latest('id')
+            ->get([
+                'id',
+                'community_id',
+                'need',
+                'description',
+                'priority_rank',
+            ]);
+
+        $surveyResponses = SurveyResponse::query()
+            ->where('status', SurveyResponse::STATUS_SUBMITTED)
+            ->with([
+                'template:id,title,version',
+                'answers' => fn ($query) => $query
+                    ->with('question:id,section,question,question_type,sort_order')
+                    ->orderBy('id'),
+            ])
+            ->latest('survey_date')
+            ->latest('id')
+            ->get([
+                'id',
+                'community_id',
+                'survey_template_id',
+                'survey_date',
+                'suggested_outreach_program',
+                'remarks',
+            ])
+            ->map(fn (SurveyResponse $response) => [
+                'id' => $response->id,
+                'community_id' => $response->community_id,
+                'survey_date' => $response->survey_date?->toDateString(),
+                'template' => $response->template,
+                'suggested_outreach_program' => $response->suggested_outreach_program,
+                'remarks' => $response->remarks,
+                'answers' => $response->answers
+                    ->sortBy(fn (SurveyAnswer $answer) => $answer->question?->sort_order ?? PHP_INT_MAX)
+                    ->values()
+                    ->map(fn (SurveyAnswer $answer) => [
+                        'id' => $answer->id,
+                        'survey_question_id' => $answer->survey_question_id,
+                        'section' => $answer->question?->section,
+                        'question' => $answer->question?->question,
+                        'question_type' => $answer->question?->question_type,
+                        'value' => $this->answerValue($answer),
+                    ]),
+            ]);
+
+        return [
+            'communities' => Community::query()
+                ->active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'city', 'province']),
+            'priority_needs' => $priorityNeeds,
+            'survey_responses' => $surveyResponses,
+            'statuses' => ProjectProposal::STATUSES,
+            'steps' => ProjectProposal::STEPS,
+        ];
     }
 
     public function find(ProjectProposal $proposal): ProjectProposal
@@ -140,5 +203,26 @@ class ProjectProposalService
             return;
         }
         User::query()->whereHas('role', fn ($q) => $q->where('name', $role))->when($proposal->current_step === 'immediate_head', fn ($q) => $q->where('college_id', $proposal->college_id))->each(fn (User $reviewer) => $reviewer->notify(new ProjectProposalNotification($proposal, $message)));
+    }
+
+    private function answerValue(SurveyAnswer $answer): mixed
+    {
+        if ($answer->answer_json !== null) {
+            return $answer->answer_json;
+        }
+
+        if ($answer->answer_boolean !== null) {
+            return $answer->answer_boolean;
+        }
+
+        if ($answer->answer_number !== null) {
+            return $answer->answer_number;
+        }
+
+        if ($answer->answer_date !== null) {
+            return $answer->answer_date->toDateString();
+        }
+
+        return $answer->answer_text;
     }
 }

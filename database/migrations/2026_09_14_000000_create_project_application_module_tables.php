@@ -98,7 +98,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('notices_to_proceed', function (Blueprint $table) {
+        Schema::create('notice_to_proceeds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('project_proposal_id')->unique()->constrained()->cascadeOnDelete();
             $table->string('ntp_number')->unique();
@@ -138,7 +138,7 @@ return new class extends Migration
     {
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('audit_logs');
-        Schema::dropIfExists('notices_to_proceed');
+        Schema::dropIfExists('notice_to_proceeds');
         Schema::dropIfExists('project_proposal_documents');
         Schema::dropIfExists('project_proposal_approvals');
         Schema::dropIfExists('project_proposal_workplans');

@@ -18,167 +18,188 @@ const initialData = ref(null);
 const loading = ref(true);
 const submitting = ref(false);
 const errors = ref({});
+const failure = ref("");
 const downloadingForm = ref(false);
 
 const responseId = computed(() => route.params.id);
 const isEditing = computed(() => Boolean(responseId.value));
 
 async function loadTemplate(id) {
-  if (!id) {
-    selectedTemplate.value = null;
-    return;
-  }
+    if (!id) {
+        selectedTemplate.value = null;
+        return;
+    }
 
-  const response = await surveyTemplateService.get(id);
+    const response = await surveyTemplateService.get(id);
 
-  selectedTemplate.value = response.data.data;
+    selectedTemplate.value = response.data.data;
 }
 
 async function loadOptions() {
-  const [communityResponse, templateResponse] =
-    await Promise.all([
-      communityService.getAll(),
-      surveyTemplateService.getList({
-        status: "published",
-        per_page: 100,
-      }),
+    const [communityResponse, templateResponse] = await Promise.all([
+        communityService.getAll(),
+        surveyTemplateService.getList({
+            status: "published",
+            per_page: 100,
+        }),
     ]);
 
-  communities.value = communityResponse.data.data;
-  templates.value = templateResponse.data.data.data;
+    communities.value = communityResponse.data.data;
+    templates.value = templateResponse.data.data.data;
 }
 
 async function loadResponse() {
-  if (!isEditing.value) {
-    return;
-  }
+    if (!isEditing.value) {
+        return;
+    }
 
-  const response = await surveyResponseService.get(
-    responseId.value
-  );
+    const response = await surveyResponseService.get(responseId.value);
 
-  initialData.value = response.data.data;
+    initialData.value = response.data.data;
 
-  await loadTemplate(
-    initialData.value.survey_template_id
-  );
+    await loadTemplate(initialData.value.survey_template_id);
 }
 
 async function save(payload) {
-  submitting.value = true;
-  errors.value = {};
+    submitting.value = true;
+    errors.value = {};
+    failure.value = "";
 
-  try {
-    if (isEditing.value) {
-      await surveyResponseService.update(
-        responseId.value,
-        payload
-      );
-    } else {
-      await surveyResponseService.create(payload);
+    try {
+        if (isEditing.value) {
+            await surveyResponseService.update(responseId.value, payload);
+        } else {
+            await surveyResponseService.create(payload);
+        }
+
+        router.push({
+            name: "admin-survey-responses",
+        });
+    } catch (error) {
+        errors.value = error.response?.data?.errors ?? {};
+        const firstValidationError = Object.values(errors.value)
+            .flat()
+            .find(Boolean);
+
+        failure.value =
+            firstValidationError ??
+            error.response?.data?.message ??
+            "Unable to save survey response.";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+        submitting.value = false;
     }
-
-    router.push({
-      name: "admin-survey-responses",
-    });
-  } catch (error) {
-    errors.value = error.response?.data?.errors ?? {};
-
-    if (!error.response?.data?.errors) {
-      window.alert(
-        error.response?.data?.message ??
-          "Unable to save survey response."
-      );
-    }
-  } finally {
-    submitting.value = false;
-  }
 }
 
 async function downloadBlankForm() {
-  if (!selectedTemplate.value || downloadingForm.value) {
-    return;
-  }
+    if (!selectedTemplate.value || downloadingForm.value) {
+        return;
+    }
 
-  downloadingForm.value = true;
+    downloadingForm.value = true;
 
-  try {
-    const response = await surveyTemplateService.downloadPdf(
-      selectedTemplate.value.id
-    );
-    downloadResponse(
-      response,
-      `survey-template-v${selectedTemplate.value.version}.pdf`
-    );
-  } catch (error) {
-    window.alert(
-      error.response?.data?.message ??
-        "Unable to download the blank survey form."
-    );
-  } finally {
-    downloadingForm.value = false;
-  }
+    try {
+        const response = await surveyTemplateService.downloadPdf(
+            selectedTemplate.value.id,
+        );
+        downloadResponse(
+            response,
+            `survey-template-v${selectedTemplate.value.version}.pdf`,
+        );
+    } catch (error) {
+        window.alert(
+            error.response?.data?.message ??
+                "Unable to download the blank survey form.",
+        );
+    } finally {
+        downloadingForm.value = false;
+    }
 }
 
 onMounted(async () => {
-  loading.value = true;
+    loading.value = true;
 
-  try {
-    await loadOptions();
-    await loadResponse();
-  } finally {
-    loading.value = false;
-  }
+    try {
+        await loadOptions();
+        await loadResponse();
+    } finally {
+        loading.value = false;
+    }
 });
 </script>
 
 <template>
-  <MainLayout>
-    <section class="content">
-      <div class="container-fluid">
-      <div class="mb-3 d-flex justify-content-between align-items-start gap-3">
-        <div>
-        <h1 class="h3 mb-1">
-          {{ isEditing ? "Edit Survey Response" : "Conduct Survey" }}
-        </h1>
+    <MainLayout>
+        <section class="content">
+            <div class="container-fluid">
+                <div
+                    class="mb-3 d-flex justify-content-between align-items-start gap-3"
+                >
+                    <div>
+                        <h1 class="h3 mb-1">
+                            {{
+                                isEditing
+                                    ? "Edit Survey Response"
+                                    : "Conduct Survey"
+                            }}
+                        </h1>
 
-        <p class="text-muted mb-0">
-          Encode the community profile and priority needs.
-        </p>
-        </div>
+                        <p class="text-muted mb-0">
+                            Encode the community profile and priority needs.
+                        </p>
+                    </div>
 
-        <button
-          type="button"
-          class="btn btn-outline-success"
-          :disabled="!selectedTemplate || downloadingForm"
-          @click="downloadBlankForm"
-        >
-          <span
-            v-if="downloadingForm"
-            class="spinner-border spinner-border-sm me-1"
-          ></span>
-          <i v-else class="bi bi-file-earmark-pdf me-1"></i>
-          {{ downloadingForm ? "Preparing PDF..." : "Download Blank Form" }}
-        </button>
-      </div>
+                    <button
+                        type="button"
+                        class="btn btn-outline-success"
+                        :disabled="!selectedTemplate || downloadingForm"
+                        @click="downloadBlankForm"
+                    >
+                        <span
+                            v-if="downloadingForm"
+                            class="spinner-border spinner-border-sm me-1"
+                        ></span>
+                        <i v-else class="bi bi-file-earmark-pdf me-1"></i>
+                        {{
+                            downloadingForm
+                                ? "Preparing PDF..."
+                                : "Download Blank Form"
+                        }}
+                    </button>
+                </div>
 
-      <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary"></div>
-      </div>
+                <div v-if="loading" class="text-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                </div>
 
-      <SurveyResponseForm
-        v-else
-        :communities="communities"
-        :templates="templates"
-        :template="selectedTemplate"
-        :initial-data="initialData"
-        :errors="errors"
-        :submitting="submitting"
-        @template-change="loadTemplate"
-        @save-draft="save"
-        @submit-survey="save"
-      />
-      </div>
-    </section>
-  </MainLayout>
+                <div
+                    v-if="failure"
+                    class="alert alert-danger alert-dismissible fade show"
+                    role="alert"
+                >
+                    {{ failure }}
+                    <button
+                        type="button"
+                        class="btn-close"
+                        aria-label="Close"
+                        @click="failure = ''"
+                    ></button>
+                </div>
+
+                <SurveyResponseForm
+                    v-if="!loading"
+                    :communities="communities"
+                    :templates="templates"
+                    :template="selectedTemplate"
+                    :initial-data="initialData"
+                    :errors="errors"
+                    :submitting="submitting"
+                    @template-change="loadTemplate"
+                    @save-draft="save"
+                    @submit-survey="save"
+                />
+            </div>
+        </section>
+    </MainLayout>
 </template>
