@@ -25,6 +25,13 @@ class UpdateEngagementRecordRequest extends FormRequest
                 'integer',
                 Rule::exists('users', 'id'),
             ],
+            'user_ids' => ['sometimes', 'array', 'min:1', 'max:100'],
+            'user_ids.*' => [
+                'required',
+                'integer',
+                'distinct',
+                Rule::exists('users', 'id'),
+            ],
             'outreach_project_id' => [
                 'nullable',
                 'integer',

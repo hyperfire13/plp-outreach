@@ -91,6 +91,68 @@ class ReportingAndAccomplishmentTest extends TestCase
         $this->assertFalse($keys->contains('accomplishments'));
     }
 
+    public function test_engagement_activity_groups_multiple_participants(): void
+    {
+        $college = $this->createCollege('CAS');
+        $administrator = $this->createUser('college_admin', $college);
+        $participantRole = Role::query()->create([
+            'name' => 'student_volunteer',
+            'display_name' => 'Student Volunteer',
+        ]);
+        $participants = collect(['one', 'two'])->map(
+            fn (string $suffix) => User::query()->create([
+                'name' => "Participant {$suffix}",
+                'first_name' => 'Participant',
+                'last_name' => ucfirst($suffix),
+                'email' => "participant.{$suffix}@example.com",
+                'password' => 'password',
+                'role_id' => $participantRole->id,
+                'college_id' => $college->id,
+            ])
+        );
+        Sanctum::actingAs($administrator);
+
+        $createResponse = $this->postJson('/api/v1/engagement-records', [
+            'user_ids' => $participants->pluck('id')->all(),
+            'title' => 'Grouped Community Activity',
+            'engagement_type' => EngagementRecord::TYPE_VOLUNTEERISM,
+            'participation_role' => 'Volunteer',
+            'activity_date' => '2026-09-15',
+            'source_type' => EngagementRecord::SOURCE_MANUAL,
+            'status' => EngagementRecord::STATUS_DRAFT,
+        ]);
+
+        $createResponse->assertCreated()->assertJsonCount(2, 'data');
+        $this->assertSame(
+            1,
+            EngagementRecord::query()
+                ->distinct()
+                ->count('engagement_group_uuid')
+        );
+
+        $listResponse = $this->getJson('/api/v1/engagement-records');
+
+        $listResponse
+            ->assertOk()
+            ->assertJsonPath('data.total', 1)
+            ->assertJsonPath('data.data.0.participant_count', 2)
+            ->assertJsonCount(2, 'data.data.0.participants');
+
+        $recordId = $listResponse->json('data.data.0.id');
+        $updateResponse = $this->putJson(
+            "/api/v1/engagement-records/{$recordId}",
+            ['user_ids' => [$participants->first()->id]]
+        );
+
+        $updateResponse->assertOk();
+        $this->assertSame(1, EngagementRecord::query()->count());
+
+        $this->getJson('/api/v1/engagement-records')
+            ->assertOk()
+            ->assertJsonPath('data.data.0.participant_count', 1)
+            ->assertJsonCount(1, 'data.data.0.participants');
+    }
+
     private function createUser(string $roleName, ?College $college = null): User
     {
         $role = Role::query()->create([

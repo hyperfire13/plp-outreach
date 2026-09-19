@@ -108,7 +108,15 @@ class SurveySeeder extends Seeder
             foreach ($data['needs'] as [$need, $rank, $description]) {
                 PriorityNeed::query()->updateOrCreate(
                     ['survey_response_id' => $response->id, 'priority_rank' => $rank],
-                    ['community_id' => $community->id, 'need' => $need, 'description' => $description]
+                    [
+                        'community_id' => $community->id,
+                        'need' => $need,
+                        'description' => $description,
+                        'status' => $isSubmitted ? 'validated' : 'pending',
+                        'validated_by' => $isSubmitted ? $administrator->id : null,
+                        'validated_at' => $isSubmitted ? "{$data['date']} 18:00:00" : null,
+                        'validation_remarks' => $isSubmitted ? 'Validated from the submitted community needs assessment.' : null,
+                    ]
                 );
             }
         }

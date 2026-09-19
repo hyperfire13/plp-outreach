@@ -13,6 +13,10 @@ class UserSeeder extends Seeder
     private const EXCLUDED_ROLES = [
         'super_admin',
         'calo_administrator',
+        'calo_staff',
+        'academic_affairs_officer',
+        'vice_president_academic_affairs',
+        'university_president',
     ];
 
     public static function emailFor(
@@ -74,6 +78,10 @@ class UserSeeder extends Seeder
                 'birthday' => '1982-09-03',
                 'contact_number' => '09170000002',
             ],
+            ['role' => 'calo_staff', 'first_name' => 'Paolo', 'middle_name' => 'Garcia', 'last_name' => 'Mendoza', 'email' => 'calo.staff@plp.edu.ph', 'birthday' => '1990-06-18', 'contact_number' => '09170000003'],
+            ['role' => 'academic_affairs_officer', 'first_name' => 'Lourdes', 'middle_name' => 'Santos', 'last_name' => 'Navarro', 'email' => 'academic.affairs@plp.edu.ph', 'birthday' => '1986-02-21', 'contact_number' => '09170000004'],
+            ['role' => 'vice_president_academic_affairs', 'first_name' => 'Roberto', 'middle_name' => 'Cruz', 'last_name' => 'Aquino', 'email' => 'vpaa@plp.edu.ph', 'birthday' => '1978-11-08', 'contact_number' => '09170000005'],
+            ['role' => 'university_president', 'first_name' => 'Teresa', 'middle_name' => 'Reyes', 'last_name' => 'Bautista', 'email' => 'president@plp.edu.ph', 'birthday' => '1972-01-25', 'contact_number' => '09170000006'],
         ];
 
         foreach ($systemUsers as $data) {

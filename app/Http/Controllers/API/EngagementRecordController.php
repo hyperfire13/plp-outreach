@@ -70,14 +70,16 @@ class EngagementRecordController extends Controller
     public function store(
         StoreEngagementRecordRequest $request
     ): JsonResponse {
-        $record = $this->service->store(
+        $records = $this->service->storeMany(
             $request->user(),
             $request->validated()
         );
 
         return response()->json([
-            'message' => 'Engagement record created successfully.',
-            'data' => $record,
+            'message' => $records->count() === 1
+                ? 'Engagement record created successfully.'
+                : "{$records->count()} engagement records created successfully.",
+            'data' => $records,
         ], 201);
     }
 

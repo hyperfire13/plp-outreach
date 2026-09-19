@@ -61,7 +61,7 @@ class EngagementRecordPolicyTest extends TestCase
             'super administrator' => ['super_admin', true],
             'CALO administrator' => ['calo_administrator', true],
             'college administrator' => ['college_admin', false],
-            'monitoring team' => ['monitoring_evaluation_team', false],
+            'monitoring team' => ['monitoring_evaluation_team', true],
         ];
     }
 

@@ -20,26 +20,44 @@ class UserSeederTest extends TestCase
 
         $colleges = College::query()->where('is_active', true)->get();
         $roles = Role::query()
-            ->whereNotIn('name', ['super_admin', 'calo_administrator'])
+            ->whereNotIn('name', [
+                'super_admin',
+                'calo_administrator',
+                'calo_staff',
+                'academic_affairs_officer',
+                'vice_president_academic_affairs',
+                'university_president',
+            ])
             ->get();
 
         $this->assertSame(5, $colleges->count());
         $this->assertSame(10, $roles->count());
-        $this->assertSame(102, User::query()->count());
+        $this->assertSame(106, User::query()->count());
         $systemUsers = User::query()->whereHas(
-                'role',
-                fn ($query) => $query->whereIn('name', [
-                    'super_admin',
-                    'calo_administrator',
-                ])
-            )->get();
+            'role',
+            fn ($query) => $query->whereIn('name', [
+                'super_admin',
+                'calo_administrator',
+                'calo_staff',
+                'academic_affairs_officer',
+                'vice_president_academic_affairs',
+                'university_president',
+            ])
+        )->get();
 
-        $this->assertCount(2, $systemUsers);
+        $this->assertCount(6, $systemUsers);
         $this->assertTrue($systemUsers->every(
             fn (User $user) => $user->college_id === null
         ));
         $this->assertSame(
-            ['calo_administrator', 'super_admin'],
+            [
+                'academic_affairs_officer',
+                'calo_administrator',
+                'calo_staff',
+                'super_admin',
+                'university_president',
+                'vice_president_academic_affairs',
+            ],
             $systemUsers->load('role')
                 ->pluck('role.name')
                 ->sort()

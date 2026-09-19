@@ -1,16 +1,19 @@
 <?php
 
+use App\Http\Controllers\API\AuditLogController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CollegeController;
 use App\Http\Controllers\API\CommunityController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\EngagementProfileController;
 use App\Http\Controllers\API\EngagementRecordController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\OutreachProgramController;
 use App\Http\Controllers\API\OutreachProjectController;
 use App\Http\Controllers\API\OutreachRecordController;
 use App\Http\Controllers\API\PriorityNeedController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\ProjectProposalController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SurveyQuestionController;
 use App\Http\Controllers\API\SurveyResponseController;
@@ -25,7 +28,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () use ($roleMid
         Route::post('/login', [AuthController::class, 'login']);
     });
 
-    Route::middleware('auth:sanctum')->group(
+    Route::middleware(['auth:sanctum', 'audit'])->group(
         function () use ($roleMiddleware) {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::get('/me', [AuthController::class, 'me']);
@@ -156,6 +159,11 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () use ($roleMid
                     );
                 });
 
+            Route::middleware($roleMiddleware('priority_need_reviewers'))->group(function () {
+                Route::post('/priority-needs/{priority_need}/validate', [PriorityNeedController::class, 'validateNeed']);
+                Route::post('/priority-needs/{priority_need}/reject', [PriorityNeedController::class, 'rejectNeed']);
+            });
+
             Route::middleware($roleMiddleware('engagement_viewers'))
                 ->group(function () {
                     Route::get(
@@ -222,6 +230,28 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () use ($roleMid
                         [EngagementRecordController::class, 'reject']
                     );
                 });
+
+            Route::middleware($roleMiddleware('proposal_viewers'))->group(function () {
+                Route::get('/project-proposals/options', [ProjectProposalController::class, 'options']);
+                Route::get('/project-proposals', [ProjectProposalController::class, 'index']);
+                Route::get('/project-proposals/{project_proposal}', [ProjectProposalController::class, 'show']);
+                Route::get('/project-proposals/{project_proposal}/ntp/pdf', [ProjectProposalController::class, 'downloadNtp'])->middleware('throttle:pdf-downloads');
+                Route::post('/project-proposals', [ProjectProposalController::class, 'store']);
+                Route::match(['put', 'patch'], '/project-proposals/{project_proposal}', [ProjectProposalController::class, 'update']);
+                Route::delete('/project-proposals/{project_proposal}', [ProjectProposalController::class, 'destroy']);
+                Route::post('/project-proposals/{project_proposal}/submit', [ProjectProposalController::class, 'submit']);
+                Route::post('/project-proposals/{project_proposal}/review', [ProjectProposalController::class, 'review']);
+                Route::post('/project-proposals/{project_proposal}/issue-ntp', [ProjectProposalController::class, 'issueNtp']);
+                Route::post('/project-proposals/{project_proposal}/documents', [ProjectProposalController::class, 'uploadDocument']);
+                Route::get('/project-proposals/{project_proposal}/documents/{document}', [ProjectProposalController::class, 'downloadDocument']);
+                Route::delete('/project-proposals/{project_proposal}/documents/{document}', [ProjectProposalController::class, 'deleteDocument']);
+            });
+
+            Route::get('/audit-logs', [AuditLogController::class, 'index'])
+                ->middleware($roleMiddleware('audit_viewers'));
+            Route::get('/notifications', [NotificationController::class, 'index']);
+            Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+            Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
         }
     );
 

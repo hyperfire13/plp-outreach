@@ -16,13 +16,23 @@ class PriorityNeed extends Model
         'need',
         'priority_rank',
         'description',
+        'status',
+        'validated_by',
+        'validated_at',
+        'validation_remarks',
     ];
 
     protected function casts(): array
     {
         return [
             'priority_rank' => 'integer',
+            'validated_at' => 'datetime',
         ];
+    }
+
+    public function validator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'validated_by');
     }
 
     public function response(): BelongsTo

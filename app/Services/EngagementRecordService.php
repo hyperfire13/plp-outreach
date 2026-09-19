@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
-use App\Models\EngagementRecord;
 use App\Models\Community;
+use App\Models\EngagementRecord;
 use App\Models\OutreachProject;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class EngagementRecordService
@@ -103,15 +105,7 @@ class EngagementRecordService
             100
         );
 
-        return $this->visibleQuery($authUser)
-            ->with([
-                'user:id,first_name,middle_name,last_name,email,college_id',
-                'user.college:id,name',
-                'project:id,title',
-                'community:id,name,city',
-                'encoder:id,first_name,middle_name,last_name',
-                'validator:id,first_name,middle_name,last_name',
-            ])
+        $query = $this->visibleQuery($authUser)
             ->search($filters['search'] ?? null)
             ->when(
                 filled($filters['user_id'] ?? null),
@@ -180,22 +174,53 @@ class EngagementRecordService
                     '<=',
                     $filters['date_to']
                 )
-            )
-            ->latest('activity_date')
-            ->latest('id')
+            );
+
+        $paginator = (clone $query)
+            ->select('engagement_group_uuid')
+            ->selectRaw('MAX(id) as representative_id')
+            ->selectRaw('MAX(activity_date) as latest_activity_date')
+            ->groupBy('engagement_group_uuid')
+            ->orderByDesc('latest_activity_date')
+            ->orderByDesc('representative_id')
             ->paginate($perPage);
+
+        $groupUuids = $paginator->getCollection()
+            ->pluck('engagement_group_uuid');
+
+        $groupedRecords = $this->visibleQuery($authUser)
+            ->with($this->recordRelations())
+            ->whereIn('engagement_group_uuid', $groupUuids)
+            ->get()
+            ->groupBy('engagement_group_uuid');
+
+        $records = $paginator->getCollection()->map(function ($group) use (
+            $groupedRecords
+        ) {
+            $records = $groupedRecords->get(
+                $group->engagement_group_uuid,
+                collect()
+            );
+            $record = $records->firstWhere('id', $group->representative_id)
+                ?? $records->first();
+
+            if ($record !== null) {
+                $record->setAttribute(
+                    'participants',
+                    $records->pluck('user')->filter()->unique('id')->values()
+                );
+                $record->setAttribute('participant_count', $records->count());
+            }
+
+            return $record;
+        })->filter()->values();
+
+        return $paginator->setCollection($records);
     }
 
     public function find(EngagementRecord $record): EngagementRecord
     {
-        return $record->load([
-            'user:id,first_name,middle_name,last_name,email,college_id',
-            'user.college:id,name',
-            'project:id,title,status',
-            'community:id,name,city,province',
-            'encoder:id,first_name,middle_name,last_name,email',
-            'validator:id,first_name,middle_name,last_name,email',
-        ]);
+        return $record->load($this->recordRelations());
     }
 
     public function store(User $authUser, array $data): EngagementRecord
@@ -217,6 +242,24 @@ class EngagementRecordService
         });
     }
 
+    public function storeMany(User $authUser, array $data): Collection
+    {
+        $participantIds = collect($data['user_ids'] ?? [$data['user_id']])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        unset($data['user_ids']);
+        $data['engagement_group_uuid'] = (string) Str::uuid();
+
+        return DB::transaction(fn () => $participantIds->map(
+            fn (int $participantId) => $this->store($authUser, [
+                ...$data,
+                'user_id' => $participantId,
+            ])
+        ));
+    }
+
     public function update(
         User $authUser,
         EngagementRecord $record,
@@ -230,17 +273,91 @@ class EngagementRecordService
             ]);
         }
 
-        $this->ensureCanEncodeForParticipant(
-            $authUser,
-            array_merge($record->only([
-                'user_id',
-                'outreach_project_id',
-                'source_type',
-            ]), $data)
-        );
+        $participantIds = collect($data['user_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
 
-        return DB::transaction(function () use ($record, $data) {
-            $record->update($data);
+        if ($participantIds->isNotEmpty()) {
+            $participantIds->each(function (int $participantId) use (
+                $authUser,
+                $data,
+                $record
+            ): void {
+                $this->ensureCanEncodeForParticipant($authUser, [
+                    ...$record->only(['outreach_project_id', 'source_type']),
+                    ...$data,
+                    'user_id' => $participantId,
+                ]);
+            });
+        } else {
+            $this->ensureCanEncodeForParticipant(
+                $authUser,
+                array_merge($record->only([
+                    'user_id',
+                    'outreach_project_id',
+                    'source_type',
+                ]), $data)
+            );
+        }
+
+        return DB::transaction(function () use (
+            $record,
+            $data,
+            $participantIds
+        ) {
+            $groupQuery = $this->groupQuery($record);
+
+            if ($participantIds->isNotEmpty()) {
+                $groupRecords = (clone $groupQuery)->lockForUpdate()->get();
+                $existingParticipantIds = $groupRecords->pluck('user_id');
+                $template = $record->only([
+                    'outreach_project_id',
+                    'community_id',
+                    'title',
+                    'engagement_type',
+                    'participation_role',
+                    'activity_date',
+                    'service_hours',
+                    'sdg',
+                    'description',
+                    'source_type',
+                    'status',
+                    'encoded_by',
+                    'validated_by',
+                    'submitted_at',
+                    'validated_at',
+                    'validation_remarks',
+                ]);
+
+                unset($data['user_ids'], $data['user_id']);
+                $groupQuery->update($data);
+                $this->groupQuery($record)
+                    ->whereNotIn('user_id', $participantIds)
+                    ->delete();
+
+                $participantIds->diff($existingParticipantIds)->each(
+                    function (int $participantId) use (
+                        $data,
+                        $record,
+                        $template
+                    ): void {
+                        EngagementRecord::query()->create([
+                            ...$template,
+                            ...$data,
+                            'user_id' => $participantId,
+                            'engagement_group_uuid' => $record->engagement_group_uuid,
+                        ]);
+                    }
+                );
+
+                $updatedRecord = $this->groupQuery($record)->firstOrFail();
+
+                return $this->find($updatedRecord);
+            }
+
+            unset($data['user_ids']);
+            $groupQuery->update($data);
 
             return $this->find($record->refresh());
         });
@@ -257,7 +374,7 @@ class EngagementRecordService
         }
 
         return DB::transaction(function () use ($record) {
-            $record->update([
+            $this->groupQuery($record)->update([
                 'status' => EngagementRecord::STATUS_SUBMITTED,
                 'submitted_at' => now(),
                 'validated_by' => null,
@@ -276,7 +393,7 @@ class EngagementRecordService
         $this->ensureSubmitted($record);
 
         return DB::transaction(function () use ($record, $validator) {
-            $record->update([
+            $this->groupQuery($record)->update([
                 'status' => EngagementRecord::STATUS_APPROVED,
                 'validated_by' => $validator->id,
                 'validated_at' => now(),
@@ -299,7 +416,7 @@ class EngagementRecordService
             $validator,
             $remarks
         ) {
-            $record->update([
+            $this->groupQuery($record)->update([
                 'status' => EngagementRecord::STATUS_REJECTED,
                 'validated_by' => $validator->id,
                 'validated_at' => now(),
@@ -320,7 +437,7 @@ class EngagementRecordService
             ]);
         }
 
-        DB::transaction(fn () => $record->delete());
+        DB::transaction(fn () => $this->groupQuery($record)->delete());
     }
 
     public function visibleQuery(User $authUser): Builder
@@ -369,6 +486,26 @@ class EngagementRecordService
                 ],
             ]);
         }
+    }
+
+    private function groupQuery(EngagementRecord $record): Builder
+    {
+        return EngagementRecord::query()->where(
+            'engagement_group_uuid',
+            $record->engagement_group_uuid
+        );
+    }
+
+    private function recordRelations(): array
+    {
+        return [
+            'user:id,first_name,middle_name,last_name,email,college_id',
+            'user.college:id,name',
+            'project:id,title,status',
+            'community:id,name,city,province',
+            'encoder:id,first_name,middle_name,last_name,email',
+            'validator:id,first_name,middle_name,last_name,email',
+        ];
     }
 
     private function ensureCanEncodeForParticipant(

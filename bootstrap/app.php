@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'audit' => \App\Http\Middleware\RecordAuditTrail::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
