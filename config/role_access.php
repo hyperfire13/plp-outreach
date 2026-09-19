@@ -129,6 +129,7 @@ return [
     'engagement_reviewers' => [
         'super_admin',
         'calo_administrator',
+        'monitoring_evaluation_team',
     ],
 
     'engagement_analytics_viewers' => [

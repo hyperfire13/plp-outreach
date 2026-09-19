@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class EngagementRecord extends Model
 {
@@ -66,6 +67,7 @@ class EngagementRecord extends Model
 
     protected $fillable = [
         'user_id',
+        'engagement_group_uuid',
         'outreach_project_id',
         'community_id',
         'title',
@@ -92,6 +94,13 @@ class EngagementRecord extends Model
             'submitted_at' => 'datetime',
             'validated_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (EngagementRecord $record): void {
+            $record->engagement_group_uuid ??= (string) Str::uuid();
+        });
     }
 
     public function user(): BelongsTo

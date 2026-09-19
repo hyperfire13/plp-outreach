@@ -101,6 +101,7 @@ export const ROLE_GROUPS = Object.freeze({
     ENGAGEMENT_REVIEWERS: Object.freeze([
         ROLES.SUPER_ADMIN,
         ROLES.CALO_ADMINISTRATOR,
+        ROLES.MONITORING_EVALUATION_TEAM,
     ]),
 
     ENGAGEMENT_ANALYTICS_VIEWERS: Object.freeze([

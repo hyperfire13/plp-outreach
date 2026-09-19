@@ -30,6 +30,7 @@ const editingId = ref(null);
 const errors = ref({});
 const notice = ref("");
 const failure = ref("");
+const participantSearch = ref("");
 
 const filters = reactive({
     search: "",
@@ -69,6 +70,19 @@ const canReview = computed(() =>
 const modalTitle = computed(() =>
     editingId.value ? "Edit Engagement Record" : "Add Engagement Record",
 );
+const filteredParticipants = computed(() => {
+    const search = participantSearch.value.trim().toLowerCase();
+
+    if (!search) {
+        return options.value.participants;
+    }
+
+    return options.value.participants.filter((person) =>
+        [personName(person), person.email, person.college?.name]
+            .filter(Boolean)
+            .some((value) => value.toLowerCase().includes(search)),
+    );
+});
 
 const label = (value = "") =>
     value
@@ -126,6 +140,7 @@ function resetForm() {
     Object.assign(form, blankForm());
     editingId.value = null;
     errors.value = {};
+    participantSearch.value = "";
 }
 
 function openCreate() {
@@ -140,6 +155,9 @@ function openEdit(record) {
     errors.value = {};
     Object.assign(form, {
         user_id: record.user_id,
+        user_ids: (record.participants || [record.user])
+            .filter(Boolean)
+            .map((participant) => participant.id),
         outreach_project_id: record.outreach_project_id || "",
         community_id: record.community_id || "",
         title: record.title,
@@ -169,7 +187,7 @@ function normalizedPayload() {
         description: form.description || null,
     };
 
-    if (!editingId.value && hasRole(ROLES.COLLEGE_ADMIN)) {
+    if (hasRole(ROLES.COLLEGE_ADMIN)) {
         payload.user_ids = form.user_ids.map(Number);
         delete payload.user_id;
     } else {
@@ -434,7 +452,7 @@ onMounted(async () => {
                                 <thead>
                                     <tr>
                                         <th>Activity</th>
-                                        <th>Participant</th>
+                                        <th>Participants</th>
                                         <th>Date / Hours</th>
                                         <th>Type / SDG</th>
                                         <th>Status</th>
@@ -455,23 +473,45 @@ onMounted(async () => {
                                             }}</small>
                                         </td>
                                         <td>
-                                            <RouterLink
-                                                :to="{
-                                                    name: 'engagement-profile-view',
-                                                    params: {
-                                                        userId: record.user_id,
-                                                    },
-                                                }"
-                                                >{{
-                                                    personName(record.user)
-                                                }}</RouterLink
+                                            <div
+                                                v-for="participant in record.participants || [
+                                                    record.user,
+                                                ]"
+                                                :key="participant.id"
+                                                class="mb-1"
                                             >
-                                            <div class="small text-muted">
-                                                {{
-                                                    record.user?.college
-                                                        ?.name || "No college"
-                                                }}
+                                                <RouterLink
+                                                    :to="{
+                                                        name: 'engagement-profile-view',
+                                                        params: {
+                                                            userId: participant.id,
+                                                        },
+                                                    }"
+                                                    >{{
+                                                        personName(participant)
+                                                    }}</RouterLink
+                                                >
+                                                <span class="small text-muted">
+                                                    —
+                                                    {{
+                                                        participant.college
+                                                            ?.name ||
+                                                        "No college"
+                                                    }}
+                                                </span>
                                             </div>
+                                            <span class="badge text-bg-light">
+                                                {{
+                                                    record.participant_count ||
+                                                    1
+                                                }}
+                                                participant{{
+                                                    (record.participant_count ||
+                                                        1) === 1
+                                                        ? ""
+                                                        : "s"
+                                                }}
+                                            </span>
                                         </td>
                                         <td>
                                             {{ record.activity_date }}
@@ -613,32 +653,60 @@ onMounted(async () => {
                 <div class="col-md-6">
                     <label class="form-label"
                         >{{
-                            !editingId && hasRole(ROLES.COLLEGE_ADMIN)
+                            hasRole(ROLES.COLLEGE_ADMIN)
                                 ? "Participants"
                                 : "Participant"
                         }}
                         <span class="text-danger">*</span></label
                     >
-                    <select
-                        v-if="!editingId && hasRole(ROLES.COLLEGE_ADMIN)"
-                        v-model="form.user_ids"
-                        class="form-select"
-                        multiple
-                        size="6"
+                    <div
+                        v-if="hasRole(ROLES.COLLEGE_ADMIN)"
+                        class="border rounded p-2"
                     >
-                        <option
-                            v-for="person in options.participants"
-                            :key="person.id"
-                            :value="person.id"
-                        >
-                            {{ personName(person)
-                            }}{{
-                                person.college?.name
-                                    ? ` — ${person.college.name}`
-                                    : ""
-                            }}
-                        </option>
-                    </select>
+                        <input
+                            v-model.trim="participantSearch"
+                            type="search"
+                            class="form-control form-control-sm mb-2"
+                            placeholder="Search participants..."
+                        />
+                        <div class="overflow-auto" style="max-height: 240px">
+                            <div
+                                v-for="person in filteredParticipants"
+                                :key="person.id"
+                                class="form-check py-1"
+                            >
+                                <input
+                                    :id="`participant-${person.id}`"
+                                    v-model="form.user_ids"
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    :value="person.id"
+                                />
+                                <label
+                                    class="form-check-label w-100"
+                                    :for="`participant-${person.id}`"
+                                >
+                                    <span class="fw-semibold">{{
+                                        personName(person)
+                                    }}</span>
+                                    <span class="d-block small text-muted">
+                                        {{ person.email
+                                        }}{{
+                                            person.college?.name
+                                                ? ` — ${person.college.name}`
+                                                : ""
+                                        }}
+                                    </span>
+                                </label>
+                            </div>
+                            <div
+                                v-if="filteredParticipants.length === 0"
+                                class="small text-muted text-center py-3"
+                            >
+                                No participants match your search.
+                            </div>
+                        </div>
+                    </div>
                     <select v-else v-model="form.user_id" class="form-select">
                         <option value="">Select participant</option>
                         <option
@@ -654,11 +722,11 @@ onMounted(async () => {
                             }}
                         </option>
                     </select>
-                    <div
-                        v-if="!editingId && hasRole(ROLES.COLLEGE_ADMIN)"
-                        class="form-text"
-                    >
-                        Use Ctrl/Cmd to select multiple participants.
+                    <div v-if="hasRole(ROLES.COLLEGE_ADMIN)" class="form-text">
+                        {{ form.user_ids.length }} participant{{
+                            form.user_ids.length === 1 ? "" : "s"
+                        }}
+                        selected.
                     </div>
                     <small
                         v-if="firstError('user_id') || firstError('user_ids')"
