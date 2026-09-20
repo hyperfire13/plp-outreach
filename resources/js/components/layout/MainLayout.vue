@@ -168,7 +168,13 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <div class="sidebar-brand bg-success text-white">
                 <RouterLink :to="{ name: 'dashboard' }" class="brand-link">
-                    <span class="brand-text text-white">PLP Outreach</span>
+                    <span class="app-brand-mark" aria-hidden="true">
+                        <i class="bi bi-tree-fill"></i>
+                    </span>
+                    <span class="brand-copy">
+                        <strong class="brand-text">PLP Outreach</strong>
+                        <small>People · Linkages · Progress</small>
+                    </span>
                 </RouterLink>
             </div>
 
