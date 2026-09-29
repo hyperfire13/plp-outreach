@@ -168,13 +168,15 @@
         <aside class="app-sidebar bg-body-secondary shadow">
             <div class="sidebar-brand bg-success text-white">
                 <RouterLink :to="{ name: 'dashboard' }" class="brand-link">
-                    <span class="app-brand-mark" aria-hidden="true">
-                        <i class="bi bi-tree-fill"></i>
-                    </span>
-                    <span class="brand-copy">
+                    <img
+                        :src="'/images/calo-logo.png'"
+                        alt="CALO logo"
+                        class="app-brand-logo"
+                    />
+                    <!-- <span class="brand-copy">
                         <strong class="brand-text">PLP Outreach</strong>
                         <small>People · Linkages · Progress</small>
-                    </span>
+                    </span> -->
                 </RouterLink>
             </div>
 
@@ -265,7 +267,7 @@
                                     v-if="hasOutreachAccess"
                                     class="nav-header text-white"
                                 >
-                                    <b>OUTREACH MANAGEMENT</b>
+                                    <b>COMMUNITY MANAGEMENT</b>
                                 </li>
                                 <li v-if="canViewPrograms" class="nav-item">
                                     <RouterLink
@@ -415,7 +417,7 @@
                                 "
                             >
                                 <i class="nav-icon bi bi-people-fill"></i>
-                                <p>
+                                <p class="fs-7">
                                     Community Engagement
                                     <i
                                         class="nav-arrow bi bi-chevron-right"

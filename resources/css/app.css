@@ -107,33 +107,31 @@ body {
     display: flex;
     height: 100%;
     align-items: center;
-    gap: 0.7rem;
+    justify-content: center;
+    gap: 0;
     padding: 0.65rem 1.25rem;
     color: var(--plp-forest-dark);
     text-decoration: none;
 }
 
-.app-brand-mark {
-    display: grid;
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
-    place-items: center;
-    color: #fff;
-    background: linear-gradient(145deg, #39bd7b, var(--plp-forest));
-    border-radius: 11px 11px 11px 3px;
-    box-shadow: 0 6px 14px rgba(28, 165, 108, 0.24);
-}
-
-.app-brand-mark i {
-    font-size: 1.25rem;
+.app-brand-logo {
+    width: 165px;
+    height: 62px;
+    flex: 0 0 165px;
+    object-fit: contain;
 }
 
 .brand-copy {
-    display: flex;
+    display: none;
     min-width: 0;
     flex-direction: column;
     line-height: 1.15;
+}
+
+body.sidebar-collapse .app-brand-logo {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
 }
 
 .brand-copy .brand-text {

@@ -410,54 +410,83 @@ onMounted(() => load());
                     </div>
                 </div>
                 <div class="col-12">
-                    <section class="card bg-light border-0">
-                        <div class="card-body">
-                            <h5 class="card-title mb-1">
-                                Community Needs and Survey Insights
-                            </h5>
-                            <p class="small text-muted mb-3">
-                                Use these verified findings as guidance when
-                                preparing the proposal.
-                            </p>
+                    <section class="card community-insights-panel">
+                        <div class="card-body p-0">
+                            <header class="insights-header">
+                                <span class="insights-header-icon">
+                                    <i class="bi bi-lightbulb"></i>
+                                </span>
+                                <div class="col-md-12">
+                                    <h5 class="card-title mb-1">
+                                        Community Needs and Survey Insights
+                                    </h5>
+                                    &nbsp;
+                                    <p class="small text-muted mb-0">
+                                        Use these verified findings as guidance
+                                        when preparing the proposal.
+                                    </p>
+                                </div>
+                            </header>
                             <div v-if="!form.community_id" class="text-muted">
                                 Select a community to display its information.
                             </div>
                             <div v-else class="community-insights">
-                                <div class="mb-3">
-                                    <h6>Validated Priority Needs</h6>
+                                <section class="needs-section">
+                                    <h6 class="insights-section-title">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                        Validated Priority Needs
+                                    </h6>
                                     <ul
                                         v-if="selectedCommunityNeeds.length"
-                                        class="mb-0"
+                                        class="needs-list"
                                     >
                                         <li
                                             v-for="need in selectedCommunityNeeds"
                                             :key="need.id"
-                                            class="mb-2"
+                                            class="need-item"
                                         >
-                                            <strong>{{ need.need }}</strong>
-                                            <span v-if="need.priority_rank">
-                                                (Priority
-                                                {{ need.priority_rank }})
+                                            <span class="need-number">
+                                                {{ need.priority_rank || "•" }}
                                             </span>
-                                            <div
-                                                v-if="need.description"
-                                                class="small text-muted"
-                                            >
-                                                {{ need.description }}
+                                            <div class="need-content">
+                                                <div class="need-title-row">
+                                                    <strong>{{
+                                                        need.need
+                                                    }}</strong>
+                                                    <span
+                                                        v-if="
+                                                            need.priority_rank
+                                                        "
+                                                        class="priority-badge"
+                                                    >
+                                                        Priority
+                                                        {{ need.priority_rank }}
+                                                    </span>
+                                                </div>
+                                                <p
+                                                    v-if="need.description"
+                                                    class="need-description"
+                                                >
+                                                    {{ need.description }}
+                                                </p>
                                             </div>
                                         </li>
                                     </ul>
                                     <p v-else class="text-muted mb-0">
                                         No validated priority needs found.
                                     </p>
-                                </div>
-                                <h6>Submitted Survey Findings</h6>
+                                </section>
+                                <h6 class="insights-section-title mt-3">
+                                    <i class="bi bi-clipboard-data-fill"></i>
+                                    Submitted Survey Findings
+                                </h6>
                                 <article
                                     v-for="response in selectedCommunityResponses"
                                     :key="response.id"
-                                    class="border rounded bg-white p-3 mb-3"
+                                    class="survey-finding"
                                 >
-                                    <div class="small text-muted mb-2">
+                                    <div class="survey-meta">
+                                        <i class="bi bi-file-earmark-text"></i>
                                         {{
                                             response.template?.title || "Survey"
                                         }}
@@ -465,28 +494,47 @@ onMounted(() => load());
                                             · {{ response.survey_date }}
                                         </span>
                                     </div>
-                                    <div class="mb-2">
-                                        <strong
-                                            >Suggested outreach program:</strong
-                                        >
-                                        {{
-                                            response.suggested_outreach_program ||
-                                            "No suggestion provided"
-                                        }}
+                                    <div class="survey-highlights">
+                                        <div class="survey-highlight">
+                                            <span class="highlight-icon">
+                                                <i class="bi bi-stars"></i>
+                                            </span>
+                                            <div>
+                                                <strong
+                                                    >Suggested outreach
+                                                    program</strong
+                                                >
+                                                <p>
+                                                    {{
+                                                        response.suggested_outreach_program ||
+                                                        "No suggestion provided"
+                                                    }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="survey-highlight">
+                                            <span class="highlight-icon">
+                                                <i
+                                                    class="bi bi-chat-left-text"
+                                                ></i>
+                                            </span>
+                                            <div>
+                                                <strong>Remarks</strong>
+                                                <p>
+                                                    {{
+                                                        response.remarks ||
+                                                        "No remarks provided"
+                                                    }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <strong>Remarks:</strong>
-                                        {{
-                                            response.remarks ||
-                                            "No remarks provided"
-                                        }}
-                                    </div>
-                                    <dl class="row small mb-0">
+                                    <dl class="answer-list mb-0">
                                         <template
                                             v-for="answer in response.answers"
                                             :key="answer.id"
                                         >
-                                            <dt class="col-md-6 fw-semibold">
+                                            <dt class="answer-question">
                                                 <span
                                                     v-if="answer.section"
                                                     class="text-muted"
@@ -495,7 +543,7 @@ onMounted(() => load());
                                                 </span>
                                                 {{ answer.question }}
                                             </dt>
-                                            <dd class="col-md-6">
+                                            <dd class="answer-value">
                                                 {{
                                                     displayAnswer(answer.value)
                                                 }}
@@ -711,9 +759,259 @@ onMounted(() => load());
 </template>
 
 <style scoped>
+.community-insights-panel {
+    overflow: hidden;
+    background: #f7fcf9;
+    border: 1px solid #cfe8dc;
+    box-shadow: 0 8px 22px rgba(8, 107, 82, 0.08);
+}
+
+.insights-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    background: linear-gradient(110deg, #e5f7ee, #f8fcfa);
+    border-bottom: 1px solid #cfe8dc;
+}
+
+.insights-header-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    place-items: center;
+    color: #fff;
+    background: linear-gradient(145deg, #31b975, #087258);
+    border-radius: 12px;
+    box-shadow: 0 6px 13px rgba(8, 114, 88, 0.2);
+}
+
+.insights-header-icon i {
+    font-size: 1.15rem;
+}
+
+.insights-header .card-title {
+    color: #075b47;
+    font-size: 1rem;
+}
+
+.community-insights-panel > .card-body > .text-muted {
+    padding: 1.25rem;
+}
+
 .community-insights {
     max-height: 28rem;
     overflow-y: auto;
-    padding-right: 0.5rem;
+    padding: 1rem 1.1rem 1.1rem;
+    scrollbar-color: #72b99e #e5f0ec;
+    scrollbar-width: thin;
+}
+
+.community-insights::-webkit-scrollbar {
+    width: 8px;
+}
+
+.community-insights::-webkit-scrollbar-track {
+    background: #e5f0ec;
+    border-radius: 10px;
+}
+
+.community-insights::-webkit-scrollbar-thumb {
+    background: #72b99e;
+    border-radius: 10px;
+}
+
+.needs-section {
+    padding-bottom: 0.25rem;
+}
+
+.insights-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.7rem;
+    color: #164c3e;
+    font-size: 0.84rem;
+    font-weight: 750;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+}
+
+.insights-section-title i {
+    color: #159665;
+}
+
+.needs-list {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.need-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.75rem 0.85rem;
+    background: #fff;
+    border: 1px solid #dcece5;
+    border-left: 4px solid #1ca56c;
+    border-radius: 10px;
+}
+
+.need-number {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    place-items: center;
+    color: #087258;
+    background: #dff5e9;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 750;
+}
+
+.need-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.need-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: #183b32;
+}
+
+.priority-badge {
+    flex: 0 0 auto;
+    padding: 0.22rem 0.55rem;
+    color: #087258;
+    background: #e2f6ed;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.need-description {
+    margin: 0.25rem 0 0;
+    color: #667b74;
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.survey-finding {
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+    background: #fff;
+    border: 1px solid #d7e8e1;
+    border-radius: 11px;
+}
+
+.survey-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 0.85rem;
+    color: #527065;
+    background: #f0f8f4;
+    border-bottom: 1px solid #dcece5;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.survey-meta i {
+    color: #159665;
+}
+
+.survey-highlights {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    padding: 0.8rem;
+}
+
+.survey-highlight {
+    display: flex;
+    gap: 0.6rem;
+    padding: 0.7rem;
+    color: #21473b;
+    background: #f3faf7;
+    border: 1px solid #dceee6;
+    border-radius: 9px;
+}
+
+.highlight-icon {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    place-items: center;
+    color: #087258;
+    background: #dff5e9;
+    border-radius: 8px;
+}
+
+.survey-highlight strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: #087258;
+    font-size: 0.72rem;
+}
+
+.survey-highlight p {
+    margin: 0;
+    color: #425f56;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.answer-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    padding: 0 0.8rem 0.8rem;
+}
+
+.answer-question,
+.answer-value {
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    margin: 0;
+    border-top: 1px solid #e8f0ed;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.answer-question {
+    color: #405b52;
+    background: #fbfdfc;
+    font-weight: 600;
+}
+
+.answer-value {
+    color: #153d32;
+    background: #fff;
+}
+
+@media (max-width: 767.98px) {
+    .survey-highlights,
+    .answer-list {
+        grid-template-columns: 1fr;
+    }
+
+    .answer-value {
+        padding-top: 0.1rem;
+        border-top: 0;
+    }
+
+    .need-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.3rem;
+    }
 }
 </style>

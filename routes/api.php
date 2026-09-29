@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 $roleMiddleware = static fn (string $group): string => 'role:'.implode(',', config("role_access.{$group}"));
 
-Route::prefix('v1')->middleware('throttle:api')->group(function () use ($roleMiddleware) {
+Route::prefix('v1')->middleware(['throttle:api', 'audit'])->group(function () use ($roleMiddleware) {
     Route::middleware('throttle:login')->group(function () {
         Route::post('/login', [AuthController::class, 'login']);
     });
