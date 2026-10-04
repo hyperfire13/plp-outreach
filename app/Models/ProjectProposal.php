@@ -67,6 +67,11 @@ class ProjectProposal extends Model
         return $this->hasOne(NoticeToProceed::class);
     }
 
+    public function templateResponses()
+    {
+        return $this->hasMany(ProjectProposalTemplateResponse::class);
+    }
+
     public function isEditable(): bool
     {
         return in_array($this->status, ['draft', 'revision_requested'], true);

@@ -196,6 +196,17 @@ const routes = [
         },
     },
     {
+        path: "/project-application-templates",
+        name: "project-application-templates",
+        component: () =>
+            import("@/views/admin/ProjectApplicationTemplates.vue"),
+        meta: {
+            title: "Project Application Templates",
+            requiresAuth: true,
+            roles: ROLE_GROUPS.PROPOSAL_TEMPLATE_MANAGERS,
+        },
+    },
+    {
         path: "/audit-logs",
         name: "audit-logs",
         component: () => import("@/views/admin/AuditLogs.vue"),

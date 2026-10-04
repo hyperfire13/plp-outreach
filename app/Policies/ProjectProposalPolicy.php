@@ -19,7 +19,7 @@ class ProjectProposalPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role_name, config('role_access.proposal_applicants', []), true) && $user->college_id !== null;
+        return in_array($user->role_name, config('role_access.proposal_applicants', []), true);
     }
 
     public function update(User $user, ProjectProposal $proposal): bool
