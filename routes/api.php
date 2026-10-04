@@ -13,6 +13,7 @@ use App\Http\Controllers\API\OutreachProjectController;
 use App\Http\Controllers\API\OutreachRecordController;
 use App\Http\Controllers\API\PriorityNeedController;
 use App\Http\Controllers\API\ProfileController;
+use App\Http\Controllers\API\ProjectApplicationTemplateController;
 use App\Http\Controllers\API\ProjectProposalController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\SurveyQuestionController;
@@ -232,6 +233,8 @@ Route::prefix('v1')->middleware(['throttle:api', 'audit'])->group(function () us
                 });
 
             Route::middleware($roleMiddleware('proposal_viewers'))->group(function () {
+                Route::get('/project-application-templates', [ProjectApplicationTemplateController::class, 'index']);
+                Route::get('/project-application-templates/{project_application_template}', [ProjectApplicationTemplateController::class, 'show']);
                 Route::get('/project-proposals/options', [ProjectProposalController::class, 'options']);
                 Route::get('/project-proposals', [ProjectProposalController::class, 'index']);
                 Route::get('/project-proposals/{project_proposal}', [ProjectProposalController::class, 'show']);
@@ -245,6 +248,12 @@ Route::prefix('v1')->middleware(['throttle:api', 'audit'])->group(function () us
                 Route::post('/project-proposals/{project_proposal}/documents', [ProjectProposalController::class, 'uploadDocument']);
                 Route::get('/project-proposals/{project_proposal}/documents/{document}', [ProjectProposalController::class, 'downloadDocument']);
                 Route::delete('/project-proposals/{project_proposal}/documents/{document}', [ProjectProposalController::class, 'deleteDocument']);
+            });
+
+            Route::middleware($roleMiddleware('proposal_template_managers'))->group(function () {
+                Route::post('/project-application-templates', [ProjectApplicationTemplateController::class, 'store']);
+                Route::match(['put', 'patch'], '/project-application-templates/{project_application_template}', [ProjectApplicationTemplateController::class, 'update']);
+                Route::delete('/project-application-templates/{project_application_template}', [ProjectApplicationTemplateController::class, 'destroy']);
             });
 
             Route::get('/audit-logs', [AuditLogController::class, 'index'])

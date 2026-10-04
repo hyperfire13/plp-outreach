@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             CommunitySeeder::class,
             OutreachSeeder::class,
             SurveySeeder::class,
+            ProjectApplicationTemplateSeeder::class,
             EngagementRecordSeeder::class,
         ]);
     }

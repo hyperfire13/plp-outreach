@@ -343,6 +343,24 @@
                                         <p>Survey Templates</p>
                                     </RouterLink>
                                 </li>
+                                <li
+                                    v-if="canManageProposalTemplates"
+                                    class="nav-item"
+                                >
+                                    <RouterLink
+                                        :to="{
+                                            name: 'project-application-templates',
+                                        }"
+                                        class="nav-link text-white"
+                                        active-class="active"
+                                        @click="closeSidebarOnMobile"
+                                    >
+                                        <i
+                                            class="nav-icon bi bi-file-earmark-richtext"
+                                        ></i>
+                                        <p>Project Application Templates</p>
+                                    </RouterLink>
+                                </li>
                                 <li v-if="canDesignSurveys" class="nav-item">
                                     <RouterLink
                                         :to="{ name: 'admin-survey-questions' }"
@@ -554,6 +572,9 @@ const canViewEngagements = computed(() =>
 const canViewProjectProposals = computed(() =>
     canAccessRoles(ROLE_GROUPS.PROPOSAL_VIEWERS),
 );
+const canManageProposalTemplates = computed(() =>
+    canAccessRoles(ROLE_GROUPS.PROPOSAL_TEMPLATE_MANAGERS),
+);
 const canViewAuditLogs = computed(() =>
     canAccessRoles(ROLE_GROUPS.AUDIT_VIEWERS),
 );
@@ -574,6 +595,7 @@ const hasCommunityAssessmentAccess = computed(
     () =>
         canManageCommunities.value ||
         canDesignSurveys.value ||
+        canManageProposalTemplates.value ||
         canManageSurveyResponses.value ||
         canViewPriorityNeeds.value,
 );
@@ -612,6 +634,7 @@ const settingsRouteNames = [
     "admin-communities",
     "admin-survey-templates",
     "admin-survey-questions",
+    "project-application-templates",
     "admin-survey-responses",
     "admin-survey-responses-create",
     "admin-survey-responses-edit",

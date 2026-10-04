@@ -14,6 +14,7 @@ const modal = ref(null),
         communities: [],
         priority_needs: [],
         survey_responses: [],
+        application_templates: [],
         statuses: [],
     }),
     pagination = ref({ current_page: 1, last_page: 1 }),
@@ -45,8 +46,10 @@ const blank = () => ({
     proposed_budget: 0,
     resources: [],
     workplans: [],
+    template_responses: {},
 });
 const form = reactive(blank());
+const activeTemplateId = ref(null);
 const canCreate = computed(() =>
     canAccessRoles(ROLE_GROUPS.PROPOSAL_APPLICANTS),
 );
@@ -61,6 +64,11 @@ const selectedCommunityResponses = computed(() =>
             Number(response.community_id) === Number(form.community_id),
     ),
 );
+const applicationTemplate = computed(() =>
+    options.value.application_templates.find(
+        (template) => template.phase === "application",
+    ),
+);
 const label = (v) =>
     (v || "").replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 const person = (p) =>
@@ -69,6 +77,18 @@ const person = (p) =>
     "Unknown";
 const firstError = (k) =>
     Array.isArray(errors.value[k]) ? errors.value[k][0] : errors.value[k];
+const templateFieldError = (templateId, key) => {
+    const index = options.value.application_templates.findIndex(
+        (template) => Number(template.id) === Number(templateId),
+    );
+    const nestedError =
+        errors.value[`template_responses.${index}.response_data.${key}`];
+
+    return (
+        (Array.isArray(nestedError) ? nestedError[0] : nestedError) ||
+        firstError(key)
+    );
+};
 const displayAnswer = (value) => {
     if (Array.isArray(value)) return value.join(", ");
     if (value === true) return "Yes";
@@ -77,6 +97,72 @@ const displayAnswer = (value) => {
 
     return String(value);
 };
+const templateData = (templateId) => form.template_responses[templateId] || {};
+const fieldColumn = (field) =>
+    ["textarea", "checkbox_group"].includes(field.type) ? "col-12" : "col-md-6";
+const fieldInputType = (field) =>
+    ["email", "number", "date", "time"].includes(field.type)
+        ? field.type
+        : "text";
+
+function initializeTemplateResponses(
+    existingResponses = [],
+    legacyProposal = null,
+) {
+    const existingByTemplate = new Map(
+        existingResponses.map((response) => [
+            Number(response.project_application_template_id),
+            response.response_data || {},
+        ]),
+    );
+    const responses = {};
+
+    for (const template of options.value.application_templates) {
+        const data = { ...(existingByTemplate.get(Number(template.id)) || {}) };
+
+        if (
+            template.phase === "application" &&
+            !existingByTemplate.has(Number(template.id)) &&
+            legacyProposal
+        ) {
+            for (const key of [
+                "title",
+                "rationale",
+                "objectives",
+                "beneficiaries",
+                "expected_outputs",
+                "expected_outcomes",
+                "sustainability_plan",
+                "risk_assessment",
+                "monitoring_indicators",
+                "sdg_alignment",
+                "development_plan_alignment",
+                "partner_involvement",
+                "proposed_budget",
+            ]) {
+                data[key] = legacyProposal[key] ?? "";
+            }
+        }
+
+        for (const section of template.schema?.sections || []) {
+            for (const field of section.fields || []) {
+                if (
+                    field.type === "checkbox_group" &&
+                    !Array.isArray(data[field.key])
+                ) {
+                    data[field.key] = [];
+                } else if (data[field.key] === undefined) {
+                    data[field.key] = field.type === "checkbox" ? false : "";
+                }
+            }
+        }
+
+        responses[template.id] = data;
+    }
+
+    form.template_responses = responses;
+    activeTemplateId.value = options.value.application_templates[0]?.id || null;
+}
 async function load(page = 1) {
     loading.value = true;
     filters.page = page;
@@ -98,6 +184,7 @@ async function load(page = 1) {
 function openCreate() {
     editingId.value = null;
     Object.assign(form, blank());
+    initializeTemplateResponses();
     errors.value = {};
     modal.value?.open();
 }
@@ -114,6 +201,10 @@ async function openEdit() {
     Object.assign(form, blank(), selected.value, {
         community_id: selected.value.community_id,
     });
+    initializeTemplateResponses(
+        selected.value.template_responses || [],
+        selected.value,
+    );
     detailModal.value?.close();
     modal.value?.open();
 }
@@ -121,12 +212,34 @@ async function save() {
     saving.value = true;
     errors.value = {};
     try {
+        const applicationData = applicationTemplate.value
+            ? templateData(applicationTemplate.value.id)
+            : {};
         const payload = {
             ...form,
+            title: applicationData.title || "",
+            rationale: applicationData.rationale || "",
+            objectives: applicationData.objectives || "",
+            beneficiaries: applicationData.beneficiaries || "",
+            expected_outputs: applicationData.expected_outputs || "",
+            expected_outcomes: applicationData.expected_outcomes || "",
+            sustainability_plan: applicationData.sustainability_plan || "",
+            risk_assessment: applicationData.risk_assessment || "",
+            monitoring_indicators: applicationData.monitoring_indicators || "",
+            sdg_alignment: applicationData.sdg_alignment || "",
+            development_plan_alignment:
+                applicationData.development_plan_alignment || "",
+            partner_involvement: applicationData.partner_involvement || null,
             priority_need_id: Number(form.priority_need_id),
-            proposed_budget: Number(form.proposed_budget),
+            proposed_budget: Number(applicationData.proposed_budget || 0),
             resources: form.resources || [],
             workplans: form.workplans || [],
+            template_responses: options.value.application_templates.map(
+                (template) => ({
+                    project_application_template_id: template.id,
+                    response_data: templateData(template.id),
+                }),
+            ),
         };
         delete payload.community_id;
         const r = editingId.value
@@ -236,6 +349,7 @@ onMounted(() => load());
                     <button
                         v-if="canCreate"
                         class="btn btn-primary align-self-start"
+                        :disabled="loading"
                         @click="openCreate"
                     >
                         Add Proposal
@@ -563,47 +677,235 @@ onMounted(() => load());
                     </section>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Project Title *</label
-                    ><input v-model.trim="form.title" class="form-control" />
-                </div>
-                <div
-                    v-for="field in [
-                        'rationale',
-                        'objectives',
-                        'beneficiaries',
-                        'expected_outputs',
-                        'expected_outcomes',
-                        'sustainability_plan',
-                        'risk_assessment',
-                        'monitoring_indicators',
-                        'sdg_alignment',
-                        'development_plan_alignment',
-                        'partner_involvement',
-                    ]"
-                    :key="field"
-                    class="col-md-6"
-                >
-                    <label class="form-label"
-                        >{{ label(field)
-                        }}{{
-                            field === "partner_involvement" ? "" : " *"
-                        }}</label
-                    ><textarea
-                        v-model.trim="form[field]"
-                        class="form-control"
-                        rows="3"
-                    ></textarea
-                    ><small class="text-danger">{{ firstError(field) }}</small>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Proposed Budget *</label
-                    ><input
-                        v-model="form.proposed_budget"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        class="form-control"
-                    />
+                    <section class="template-form-panel">
+                        <div
+                            v-if="!options.application_templates.length"
+                            class="alert alert-warning mb-0"
+                        >
+                            No published project application templates are
+                            available. Please contact a CALO administrator.
+                        </div>
+                        <template v-else>
+                            <nav
+                                class="template-tabs"
+                                aria-label="Project application forms"
+                            >
+                                <button
+                                    v-for="template in options.application_templates"
+                                    :key="template.id"
+                                    type="button"
+                                    class="template-tab"
+                                    :class="{
+                                        active:
+                                            activeTemplateId === template.id,
+                                    }"
+                                    @click="activeTemplateId = template.id"
+                                >
+                                    <span class="template-tab-number">
+                                        {{ template.sort_order }}
+                                    </span>
+                                    <span>
+                                        <strong>{{ template.title }}</strong>
+                                        <small>{{
+                                            label(template.phase)
+                                        }}</small>
+                                    </span>
+                                </button>
+                            </nav>
+
+                            <article
+                                v-for="template in options.application_templates"
+                                v-show="activeTemplateId === template.id"
+                                :key="template.id"
+                                class="template-tab-content"
+                            >
+                                <div class="template-form-heading">
+                                    <div>
+                                        <span class="template-phase-badge">
+                                            {{ label(template.phase) }} Form
+                                        </span>
+                                        <h5>{{ template.title }}</h5>
+                                        <p>{{ template.description }}</p>
+                                    </div>
+                                    <span class="text-muted small">
+                                        Version {{ template.version }}
+                                    </span>
+                                </div>
+
+                                <section
+                                    v-for="(section, sectionIndex) in template
+                                        .schema?.sections || []"
+                                    :key="`${template.id}-${sectionIndex}`"
+                                    class="template-section"
+                                >
+                                    <h6>
+                                        <span>{{ sectionIndex + 1 }}</span>
+                                        {{ section.title }}
+                                    </h6>
+                                    <div class="row g-3">
+                                        <div
+                                            v-for="field in section.fields ||
+                                            []"
+                                            :key="field.key"
+                                            :class="fieldColumn(field)"
+                                        >
+                                            <label class="form-label">
+                                                {{ field.label }}
+                                                <span
+                                                    v-if="field.required"
+                                                    class="text-danger"
+                                                >
+                                                    *
+                                                </span>
+                                            </label>
+
+                                            <textarea
+                                                v-if="field.type === 'textarea'"
+                                                v-model.trim="
+                                                    form.template_responses[
+                                                        template.id
+                                                    ][field.key]
+                                                "
+                                                class="form-control"
+                                                rows="3"
+                                            ></textarea>
+
+                                            <select
+                                                v-else-if="
+                                                    field.type === 'select'
+                                                "
+                                                v-model="
+                                                    form.template_responses[
+                                                        template.id
+                                                    ][field.key]
+                                                "
+                                                class="form-select"
+                                            >
+                                                <option value="">
+                                                    Select {{ field.label }}
+                                                </option>
+                                                <option
+                                                    v-for="option in field.options ||
+                                                    []"
+                                                    :key="option"
+                                                    :value="option"
+                                                >
+                                                    {{ option }}
+                                                </option>
+                                            </select>
+
+                                            <div
+                                                v-else-if="
+                                                    field.type === 'radio'
+                                                "
+                                                class="choice-grid"
+                                            >
+                                                <label
+                                                    v-for="option in field.options ||
+                                                    []"
+                                                    :key="option"
+                                                    class="choice-option"
+                                                >
+                                                    <input
+                                                        v-model="
+                                                            form
+                                                                .template_responses[
+                                                                template.id
+                                                            ][field.key]
+                                                        "
+                                                        type="radio"
+                                                        :name="`${template.id}-${field.key}`"
+                                                        :value="option"
+                                                    />
+                                                    <span>{{ option }}</span>
+                                                </label>
+                                            </div>
+
+                                            <div
+                                                v-else-if="
+                                                    field.type ===
+                                                    'checkbox_group'
+                                                "
+                                                class="choice-grid"
+                                            >
+                                                <label
+                                                    v-for="option in field.options ||
+                                                    []"
+                                                    :key="option"
+                                                    class="choice-option"
+                                                >
+                                                    <input
+                                                        v-model="
+                                                            form
+                                                                .template_responses[
+                                                                template.id
+                                                            ][field.key]
+                                                        "
+                                                        type="checkbox"
+                                                        :value="option"
+                                                    />
+                                                    <span>{{ option }}</span>
+                                                </label>
+                                            </div>
+
+                                            <label
+                                                v-else-if="
+                                                    field.type === 'checkbox'
+                                                "
+                                                class="choice-option"
+                                            >
+                                                <input
+                                                    v-model="
+                                                        form.template_responses[
+                                                            template.id
+                                                        ][field.key]
+                                                    "
+                                                    type="checkbox"
+                                                />
+                                                <span>{{ field.label }}</span>
+                                            </label>
+
+                                            <input
+                                                v-else
+                                                v-model.trim="
+                                                    form.template_responses[
+                                                        template.id
+                                                    ][field.key]
+                                                "
+                                                :type="fieldInputType(field)"
+                                                class="form-control"
+                                                :min="
+                                                    field.type === 'number'
+                                                        ? 0
+                                                        : undefined
+                                                "
+                                                :step="
+                                                    field.type === 'number'
+                                                        ? 'any'
+                                                        : undefined
+                                                "
+                                            />
+
+                                            <div
+                                                v-if="field.help_text"
+                                                class="form-text"
+                                            >
+                                                {{ field.help_text }}
+                                            </div>
+                                            <small class="text-danger">
+                                                {{
+                                                    templateFieldError(
+                                                        template.id,
+                                                        field.key,
+                                                    )
+                                                }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </section>
+                            </article>
+                        </template>
+                    </section>
                 </div>
             </div>
             <template #footer
@@ -648,6 +950,62 @@ onMounted(() => load());
                         ₱{{ Number(selected.proposed_budget).toLocaleString() }}
                     </dd>
                 </dl>
+                <h5>Completed Application Forms</h5>
+                <div
+                    v-if="selected.template_responses?.length"
+                    class="accordion mb-4"
+                >
+                    <details
+                        v-for="response in selected.template_responses"
+                        :key="response.id"
+                        class="template-response-summary"
+                    >
+                        <summary>
+                            <span>
+                                <strong>{{ response.template?.title }}</strong>
+                                <small>
+                                    {{ label(response.template?.phase) }} ·
+                                    Version {{ response.template?.version }}
+                                </small>
+                            </span>
+                            <i class="bi bi-chevron-down"></i>
+                        </summary>
+                        <div class="p-3">
+                            <section
+                                v-for="(section, sectionIndex) in response
+                                    .template?.schema?.sections || []"
+                                :key="sectionIndex"
+                                class="mb-3"
+                            >
+                                <h6 class="text-success">
+                                    {{ section.title }}
+                                </h6>
+                                <dl class="row small mb-0">
+                                    <template
+                                        v-for="field in section.fields || []"
+                                        :key="field.key"
+                                    >
+                                        <dt class="col-md-5">
+                                            {{ field.label }}
+                                        </dt>
+                                        <dd class="col-md-7">
+                                            {{
+                                                displayAnswer(
+                                                    response.response_data?.[
+                                                        field.key
+                                                    ],
+                                                )
+                                            }}
+                                        </dd>
+                                    </template>
+                                </dl>
+                            </section>
+                        </div>
+                    </details>
+                </div>
+                <p v-else class="text-muted">
+                    This legacy proposal has no template responses.
+                </p>
                 <h5>Supporting Documents</h5>
                 <ul>
                     <li v-for="d in selected.documents" :key="d.id">
@@ -1012,6 +1370,213 @@ onMounted(() => load());
         align-items: flex-start;
         flex-direction: column;
         gap: 0.3rem;
+    }
+}
+
+.template-form-panel {
+    overflow: hidden;
+    background: #f7fcf9;
+    border: 1px solid #cfe8dc;
+    border-radius: 14px;
+}
+
+.template-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding: 0.75rem 0.75rem 0;
+    background: #edf8f3;
+    border-bottom: 1px solid #cfe8dc;
+}
+
+.template-tab {
+    display: flex;
+    min-width: 230px;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 0.9rem;
+    color: #48665c;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: 10px 10px 0 0;
+}
+
+.template-tab:hover,
+.template-tab.active {
+    color: #075b47;
+    background: #fff;
+    border-bottom-color: #1ca56c;
+}
+
+.template-tab-number {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    color: #087258;
+    background: #dff5e9;
+    border-radius: 50%;
+    font-weight: 750;
+}
+
+.template-tab strong,
+.template-tab small {
+    display: block;
+}
+
+.template-tab strong {
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.template-tab small {
+    margin-top: 0.1rem;
+    color: #769087;
+    font-size: 0.68rem;
+}
+
+.template-tab-content {
+    max-height: 38rem;
+    overflow-y: auto;
+    padding: 1.2rem;
+}
+
+.template-form-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dcece5;
+}
+
+.template-form-heading h5 {
+    margin: 0.45rem 0 0.2rem;
+    color: #123f33;
+    font-size: 1.05rem;
+}
+
+.template-form-heading p {
+    max-width: 55rem;
+    margin: 0;
+    color: #687d76;
+    font-size: 0.78rem;
+}
+
+.template-phase-badge {
+    padding: 0.24rem 0.58rem;
+    color: #087258;
+    background: #dff5e9;
+    border-radius: 999px;
+    font-size: 0.67rem;
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.template-section {
+    padding-top: 1.15rem;
+}
+
+.template-section h6 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+    color: #075b47;
+    font-size: 0.9rem;
+}
+
+.template-section h6 span {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    color: #fff;
+    background: #159665;
+    border-radius: 7px;
+    font-size: 0.7rem;
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.choice-option {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.55rem 0.65rem;
+    color: #3d5c52;
+    background: #fff;
+    border: 1px solid #d8e9e2;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 0.78rem;
+}
+
+.choice-option:has(input:checked) {
+    color: #075b47;
+    background: #e8f7ef;
+    border-color: #55b58e;
+}
+
+.choice-option input {
+    accent-color: #159665;
+}
+
+.template-response-summary {
+    overflow: hidden;
+    margin-bottom: 0.55rem;
+    background: #fff;
+    border: 1px solid #d8e9e2;
+    border-radius: 10px;
+}
+
+.template-response-summary summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 0.95rem;
+    color: #164c3e;
+    background: #f0f8f4;
+    cursor: pointer;
+    list-style: none;
+}
+
+.template-response-summary summary::-webkit-details-marker {
+    display: none;
+}
+
+.template-response-summary summary small {
+    display: block;
+    color: #70877f;
+    font-weight: 400;
+}
+
+.template-response-summary[open] summary i {
+    transform: rotate(180deg);
+}
+
+@media (max-width: 767.98px) {
+    .choice-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .template-tab {
+        min-width: 190px;
+    }
+
+    .template-form-heading {
+        flex-direction: column;
     }
 }
 </style>

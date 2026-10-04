@@ -5,11 +5,13 @@ namespace App\Services;
 use App\Models\Community;
 use App\Models\NoticeToProceed;
 use App\Models\PriorityNeed;
+use App\Models\ProjectApplicationTemplate;
 use App\Models\ProjectProposal;
 use App\Models\SurveyAnswer;
 use App\Models\SurveyResponse;
 use App\Models\User;
 use App\Notifications\ProjectProposalNotification;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -83,6 +85,14 @@ class ProjectProposalService
                 ->get(['id', 'name', 'city', 'province']),
             'priority_needs' => $priorityNeeds,
             'survey_responses' => $surveyResponses,
+            'application_templates' => ProjectApplicationTemplate::query()
+                ->published()
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get([
+                    'id', 'code', 'title', 'description', 'version', 'phase',
+                    'schema', 'is_required', 'sort_order',
+                ]),
             'statuses' => ProjectProposal::STATUSES,
             'steps' => ProjectProposal::STEPS,
         ];
@@ -90,17 +100,18 @@ class ProjectProposalService
 
     public function find(ProjectProposal $proposal): ProjectProposal
     {
-        return $proposal->load(['applicant:id,first_name,middle_name,last_name,email', 'college:id,name', 'community:id,name', 'priorityNeed:id,community_id,need,status', 'resources', 'workplans', 'approvals.actor:id,first_name,middle_name,last_name,email', 'documents.uploader:id,first_name,middle_name,last_name', 'noticeToProceed.issuer:id,first_name,middle_name,last_name']);
+        return $proposal->load(['applicant:id,first_name,middle_name,last_name,email', 'college:id,name', 'community:id,name', 'priorityNeed:id,community_id,need,status', 'resources', 'workplans', 'templateResponses.template:id,code,title,version,phase,schema,is_required,sort_order', 'approvals.actor:id,first_name,middle_name,last_name,email', 'documents.uploader:id,first_name,middle_name,last_name', 'noticeToProceed.issuer:id,first_name,middle_name,last_name']);
     }
 
     public function store(User $user, array $data): ProjectProposal
     {
         return DB::transaction(function () use ($user, $data) {
-            [$attributes,$resources,$workplans] = $this->splitChildren($data);
+            [$attributes, $resources, $workplans, $templateResponses] = $this->splitChildren($data);
             $need = PriorityNeed::query()->where('status', 'validated')->findOrFail($attributes['priority_need_id']);
             $proposal = ProjectProposal::query()->create([...$attributes, 'applicant_id' => $user->id, 'college_id' => $user->college_id, 'community_id' => $need->community_id, 'status' => 'draft']);
             $proposal->update(['proposal_number' => sprintf('CEP-%s-%06d', now()->format('Y'), $proposal->id)]);
             $this->syncChildren($proposal, $resources, $workplans);
+            $this->syncTemplateResponses($proposal, $templateResponses);
 
             return $this->find($proposal->refresh());
         });
@@ -109,10 +120,11 @@ class ProjectProposalService
     public function update(ProjectProposal $proposal, array $data): ProjectProposal
     {
         return DB::transaction(function () use ($proposal, $data) {
-            [$attributes,$resources,$workplans] = $this->splitChildren($data);
+            [$attributes, $resources, $workplans, $templateResponses] = $this->splitChildren($data);
             $need = PriorityNeed::query()->where('status', 'validated')->findOrFail($attributes['priority_need_id']);
             $proposal->update([...$attributes, 'community_id' => $need->community_id, 'status' => 'draft', 'current_step' => null]);
             $this->syncChildren($proposal, $resources, $workplans);
+            $this->syncTemplateResponses($proposal, $templateResponses);
 
             return $this->find($proposal->refresh());
         });
@@ -183,9 +195,10 @@ class ProjectProposalService
     {
         $resources = $data['resources'] ?? [];
         $workplans = $data['workplans'] ?? [];
-        unset($data['resources'],$data['workplans']);
+        $templateResponses = $data['template_responses'] ?? [];
+        unset($data['resources'], $data['workplans'], $data['template_responses']);
 
-        return [$data, $resources, $workplans];
+        return [$data, $resources, $workplans, $templateResponses];
     }
 
     private function syncChildren(ProjectProposal $proposal, array $resources, array $workplans): void
@@ -194,6 +207,64 @@ class ProjectProposalService
         $proposal->workplans()->delete();
         $proposal->resources()->createMany($resources);
         $proposal->workplans()->createMany(collect($workplans)->values()->map(fn ($item, $i) => [...$item, 'sort_order' => $i])->all());
+    }
+
+    private function syncTemplateResponses(ProjectProposal $proposal, array $responses): void
+    {
+        $templates = ProjectApplicationTemplate::query()
+            ->published()
+            ->whereIn('id', collect($responses)->pluck('project_application_template_id'))
+            ->get()
+            ->keyBy('id');
+
+        $requiredIds = ProjectApplicationTemplate::query()
+            ->published()
+            ->where('is_required', true)
+            ->pluck('id');
+
+        if ($requiredIds->diff($templates->keys())->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'template_responses' => ['All required project application templates must be included.'],
+            ]);
+        }
+
+        foreach ($responses as $index => $response) {
+            $template = $templates->get($response['project_application_template_id']);
+
+            if (! $template) {
+                throw ValidationException::withMessages([
+                    "template_responses.{$index}" => ['The selected template is unavailable.'],
+                ]);
+            }
+
+            $fields = collect($template->schema['sections'] ?? [])
+                ->flatMap(fn (array $section) => $section['fields'] ?? []);
+            $allowedKeys = $fields->pluck('key')->all();
+            $unknownKeys = array_diff(array_keys($response['response_data']), $allowedKeys);
+
+            if ($unknownKeys !== []) {
+                throw ValidationException::withMessages([
+                    "template_responses.{$index}.response_data" => ['The response contains fields that are not part of the selected template.'],
+                ]);
+            }
+
+            $data = Arr::only($response['response_data'], $allowedKeys);
+
+            if (strlen((string) json_encode($data)) > 1_000_000) {
+                throw ValidationException::withMessages([
+                    "template_responses.{$index}.response_data" => ['The template response is too large.'],
+                ]);
+            }
+
+            $isComplete = $fields
+                ->where('required', true)
+                ->every(fn (array $field) => filled($data[$field['key']] ?? null));
+
+            $proposal->templateResponses()->updateOrCreate(
+                ['project_application_template_id' => $template->id],
+                ['response_data' => $data, 'completed_at' => $isComplete ? now() : null]
+            );
+        }
     }
 
     private function notifyStepReviewers(ProjectProposal $proposal, string $message): void
