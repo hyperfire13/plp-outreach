@@ -105,6 +105,30 @@ const fieldInputType = (field) =>
         ? field.type
         : "text";
 
+function ensureTemplateResponse(templateId) {
+    if (!form.template_responses[templateId]) {
+        form.template_responses[templateId] = {};
+    }
+
+    return form.template_responses[templateId];
+}
+
+function initializeTemplateFields(template, response) {
+    for (const section of template.schema?.sections || []) {
+        for (const field of section.fields || []) {
+            if (
+                field.type === "checkbox_group" &&
+                !Array.isArray(response[field.key])
+            ) {
+                response[field.key] = [];
+            } else if (response[field.key] === undefined) {
+                response[field.key] =
+                    field.type === "checkbox" ? false : "";
+            }
+        }
+    }
+}
+
 function initializeTemplateResponses(
     existingResponses = [],
     legacyProposal = null,
@@ -144,18 +168,7 @@ function initializeTemplateResponses(
             }
         }
 
-        for (const section of template.schema?.sections || []) {
-            for (const field of section.fields || []) {
-                if (
-                    field.type === "checkbox_group" &&
-                    !Array.isArray(data[field.key])
-                ) {
-                    data[field.key] = [];
-                } else if (data[field.key] === undefined) {
-                    data[field.key] = field.type === "checkbox" ? false : "";
-                }
-            }
-        }
+        initializeTemplateFields(template, data);
 
         responses[template.id] = data;
     }
@@ -331,6 +344,26 @@ watch(
             form.priority_need_id = "";
         }
     },
+);
+watch(
+    () => options.value.application_templates,
+    (templates) => {
+        for (const template of templates || []) {
+            initializeTemplateFields(
+                template,
+                ensureTemplateResponse(template.id),
+            );
+        }
+
+        if (
+            !activeTemplateId.value &&
+            options.value.application_templates.length
+        ) {
+            activeTemplateId.value =
+                options.value.application_templates[0].id;
+        }
+    },
+    { deep: true, immediate: true },
 );
 onMounted(() => load());
 </script>
@@ -713,12 +746,15 @@ onMounted(() => load());
                                 </button>
                             </nav>
 
-                            <article
+                            <template
                                 v-for="template in options.application_templates"
-                                v-show="activeTemplateId === template.id"
                                 :key="template.id"
-                                class="template-tab-content"
                             >
+                                <article
+                                    v-if="form.template_responses[template.id]"
+                                    v-show="activeTemplateId === template.id"
+                                    class="template-tab-content"
+                                >
                                 <div class="template-form-heading">
                                     <div>
                                         <span class="template-phase-badge">
@@ -903,7 +939,8 @@ onMounted(() => load());
                                         </div>
                                     </div>
                                 </section>
-                            </article>
+                                </article>
+                            </template>
                         </template>
                     </section>
                 </div>
