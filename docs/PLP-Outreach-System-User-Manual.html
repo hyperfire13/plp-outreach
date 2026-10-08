@@ -33,17 +33,71 @@
         .toc td { border: none; border-bottom: 1px dotted #cbd5e1; }
         .footer-note { margin-top: 20px; font-size: 8px; color: #64748b; }
         code { font-family: DejaVu Sans Mono, monospace; background: #f1f5f9; padding: 1px 3px; }
+        .doc-sidebar { display: none; }
+        .doc-content { min-width: 0; }
+        @media screen {
+            html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+            body { margin: 0; background: #f2faf7; font-size: 14px; }
+            .doc-sidebar {
+                position: fixed; inset: 0 auto 0 0; z-index: 10; display: flex;
+                width: 270px; box-sizing: border-box; flex-direction: column;
+                overflow-y: auto; padding: 24px 18px; background: #ffffff;
+                border-right: 1px solid #dceae5;
+                box-shadow: 8px 0 28px rgba(25, 92, 76, 0.07);
+            }
+            .doc-sidebar .manual-brand { color: #086b52; font-size: 18px; font-weight: bold; }
+            .doc-sidebar .manual-version { margin: 3px 0 20px; color: #64748b; font-size: 11px; }
+            .doc-sidebar a { display: block; margin-bottom: 3px; padding: 8px 10px; color: #405a73; border-radius: 8px; font-size: 12px; text-decoration: none; }
+            .doc-sidebar a:hover, .doc-sidebar a:focus { color: #ffffff; background: #15803d; }
+            .doc-sidebar .sub-link { padding-left: 22px; font-size: 11px; }
+            .doc-content { max-width: 1100px; min-height: 100vh; box-sizing: border-box; margin-left: 270px; padding: 40px 55px 70px; background: #ffffff; }
+            .cover { min-height: 72vh; box-sizing: border-box; padding-top: 150px; }
+            h2 { scroll-margin-top: 18px; }
+        }
+        @media screen and (max-width: 850px) {
+            .doc-sidebar { position: sticky; top: 0; width: 100%; max-height: 190px; padding: 14px; border-right: 0; border-bottom: 1px solid #dceae5; }
+            .doc-sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .doc-sidebar .manual-version { margin-bottom: 8px; }
+            .doc-sidebar .sub-link { padding-left: 10px; }
+            .doc-content { margin-left: 0; padding: 25px 18px 55px; }
+        }
+        @media print {
+            .doc-sidebar { display: none !important; }
+            .doc-content { margin: 0; padding: 0; }
+        }
     </style>
 </head>
 <body>
+    <aside class="doc-sidebar" aria-label="Documentation navigation">
+        <div class="manual-brand">PLP Outreach Manual</div>
+        <div class="manual-version">Version 1.1 · October 8, 2026</div>
+        <nav>
+            <a href="#about">1. About the System</a>
+            <a href="#getting-started">2. Getting Started</a>
+            <a href="#roles">3. Roles and Responsibilities</a>
+            <a href="#shared-features">4. Shared Features</a>
+            <a href="#module-1">5. Module 1: Outreach</a>
+            <a href="#module-2">6. Module 2: Needs Assessment</a>
+            <a href="#module-3">7. Module 3: Engagement</a>
+            <a href="#module-4">8. Module 4: Applications</a>
+            <a class="sub-link" href="#application-templates">Project Application Templates</a>
+            <a class="sub-link" href="#applicant-workflow">Applicant Workflow</a>
+            <a href="#administration">9. Administration and Audit</a>
+            <a href="#system-flow">10. End-to-End Flow</a>
+            <a href="#role-tasks">11. Common Tasks by Role</a>
+            <a href="#troubleshooting">12. Troubleshooting</a>
+            <a href="#glossary">13. Glossary</a>
+        </nav>
+    </aside>
+    <main class="doc-content">
     <section class="cover">
         <div class="brand">PAMANTASAN NG LUNGSOD NG PASIG</div>
         <h1>PLP Community Outreach Management System</h1>
         <div class="subtitle">Complete User Manual and Role-Based Workflow Guide</div>
         <p>Modules 1 to 4, Administration, Dashboard, Notifications, Reports, and Audit Trail</p>
         <div class="meta">
-            <p><strong>Version:</strong> 1.0</p>
-            <p><strong>Documentation date:</strong> September 19, 2026</p>
+            <p><strong>Version:</strong> 1.1</p>
+            <p><strong>Documentation date:</strong> October 8, 2026</p>
             <p><strong>Audience:</strong> PLP administrators, CALO personnel, colleges, faculty, staff, students, partners, reviewers, and executives</p>
         </div>
     </section>
@@ -57,7 +111,7 @@
         <tr><td>5. Module 1</td><td>Outreach Programs, Projects, and Accomplishment Records</td></tr>
         <tr><td>6. Module 2</td><td>Community Needs Assessment</td></tr>
         <tr><td>7. Module 3</td><td>Community Engagement Profiles</td></tr>
-        <tr><td>8. Module 4</td><td>Community Extension Project Applications</td></tr>
+        <tr><td>8. Module 4</td><td>Application templates, project proposals, approvals, and implementation readiness</td></tr>
         <tr><td>9. Administration and Audit Trail</td><td>Users, colleges, roles, monitoring, and accountability</td></tr>
         <tr><td>10. End-to-End System Flow</td><td>How information moves between modules</td></tr>
         <tr><td>11. Common Tasks by Role</td><td>Practical role-based checklists</td></tr>
@@ -65,13 +119,14 @@
         <tr><td>13. Glossary</td><td>Important system terms and abbreviations</td></tr>
     </table>
 
-    <h2>1. About the System</h2>
+    <h2 id="about">1. About the System</h2>
     <p>The PLP Community Outreach Management System is a centralized platform for planning, documenting, reviewing, and reporting the university's community extension work. It connects community needs, outreach initiatives, individual participation, project applications, approvals, and institutional monitoring in one role-controlled system.</p>
 
     <h3>1.1 Main objectives</h3>
     <ul>
         <li>Maintain reliable records of communities, programs, projects, accomplishments, participants, and proposals.</li>
         <li>Base extension project applications on validated community needs.</li>
+        <li>Use centrally managed, versioned application, implementation, and monitoring forms instead of hard-coded proposal fields.</li>
         <li>Give each qualified user an individual, verified community engagement portfolio.</li>
         <li>Support multi-level review, accountability, reporting, accreditation, and institutional evaluation.</li>
         <li>Protect sensitive operations through authentication, server-side authorization, rate limits, audit logs, and scoped data access.</li>
@@ -83,7 +138,7 @@
         <tr><td><strong>Module 1: Outreach Management</strong></td><td>Maintains outreach program categories, operational projects, and accomplishment records.</td><td>Program catalog, project records, execution and impact data.</td></tr>
         <tr><td><strong>Module 2: Community Needs Assessment</strong></td><td>Registers communities, designs surveys, records responses, ranks needs, and validates priority needs.</td><td>Submitted assessments and validated community needs.</td></tr>
         <tr><td><strong>Module 3: Community Engagement Profiles</strong></td><td>Records verified participation by faculty, staff, students, and other authorized users.</td><td>Grouped engagement activities, service hours, analytics, and downloadable profile PDF.</td></tr>
-        <tr><td><strong>Module 4: Project Applications</strong></td><td>Creates need-based extension proposals and routes them through institutional approval.</td><td>Approved proposal, approval history, notifications, supporting files, and Notice to Proceed.</td></tr>
+        <tr><td><strong>Module 4: Project Applications</strong></td><td>Creates need-based extension proposals through versioned application, implementation, and monitoring forms, then routes them through institutional approval.</td><td>Template responses, approved proposal, approval history, notifications, supporting files, and Notice to Proceed.</td></tr>
     </table>
 
     <h3>1.3 How the modules relate</h3>
@@ -100,7 +155,7 @@
     <div class="callout warning"><strong>Important:</strong> Menu visibility is not the only security control. Laravel also checks roles, ownership, college scope, record status, and workflow stage. Typing a protected URL does not bypass authorization.</div>
 
     <div class="page-break"></div>
-    <h2>2. Getting Started</h2>
+    <h2 id="getting-started">2. Getting Started</h2>
 
     <h3>2.1 Signing in</h3>
     <ol>
@@ -115,7 +170,8 @@
     <ul>
         <li><strong>Top navigation:</strong> sidebar toggle, Home, notification bell, fullscreen control, current user, profile, and sign out.</li>
         <li><strong>Settings:</strong> administrative, outreach management, community assessment, and audit options available to the current role.</li>
-        <li><strong>Project Applications:</strong> need-based proposals and approvals for authorized users.</li>
+        <li><strong>Project Applications:</strong> need-based proposals are available to every authenticated role; record visibility and approval actions remain scope-controlled.</li>
+        <li><strong>Project Application Templates:</strong> Super Administrator and CALO Administrator maintain the versioned forms used by proposals under Settings.</li>
         <li><strong>Community Engagement:</strong> engagement records and the user's own engagement profile.</li>
     </ul>
     <p>The selected page is highlighted. Parent groups remain open when one of their child pages is active. On mobile devices, the sidebar closes after navigation.</p>
@@ -135,28 +191,30 @@
     <h3>2.5 Signing out</h3>
     <p>Open the user menu and select <strong>Sign out</strong>. The active API session is revoked and the user returns to the login page. Always sign out on shared devices.</p>
 
-    <h2>3. Roles and Responsibilities</h2>
+    <h2 id="roles">3. Roles and Responsibilities</h2>
     <p>One primary role is assigned to each account. A college-scoped role normally sees and manages information associated with its own college, while institutional roles may work across colleges.</p>
 
     <table>
         <tr><th>Role</th><th>Description and typical responsibilities</th><th>Important limits</th></tr>
-        <tr><td>Super Administrator</td><td>System-wide administration, colleges, users, outreach, needs validation, engagement review, proposals, NTP, reports, and audit monitoring.</td><td>Cannot safely delete the currently signed-in account; actions remain audited.</td></tr>
-        <tr><td>CALO Administrator</td><td>Institutional CALO oversight; user and college administration; broad viewing; priority-need and engagement review; CALO Head proposal approval; NTP issuance; audit monitoring.</td><td>Does not create outreach programs under the current program policy; creator ownership still applies where configured.</td></tr>
+        <tr><td>Super Administrator</td><td>System-wide administration, colleges, users, outreach, needs validation, engagement review, project-application template management, proposals, NTP, reports, and audit monitoring.</td><td>Cannot safely delete the currently signed-in account; actions remain audited.</td></tr>
+        <tr><td>CALO Administrator</td><td>Institutional CALO oversight; user and college administration; project-application template management; priority-need and engagement review; CALO Head proposal approval; NTP issuance; audit monitoring.</td><td>Does not create outreach programs under the current program policy; creator ownership and workflow stage rules still apply.</td></tr>
         <tr><td>CALO Staff</td><td>Screens Module 4 proposals for completeness and compliance at the CALO Staff stage.</td><td>Cannot act before or after the assigned workflow stage; cannot issue NTP.</td></tr>
         <tr><td>College Administrator</td><td>Manages users in the same college, communities, surveys/responses, outreach records, proposals, and grouped engagement participants within scope.</td><td>Cannot approve engagement records or view the audit trail; cannot manage other colleges' users.</td></tr>
         <tr><td>Coordinator</td><td>Coordinates projects, may encode eligible project-roster engagements, and may submit project proposals.</td><td>Access depends on ownership, assignment, project membership, and project-roster rules.</td></tr>
         <tr><td>Project Proponent</td><td>Creates/owns eligible outreach projects, encodes accomplishments and project-roster engagements, and submits need-based proposals.</td><td>Can normally edit only owned records in editable states; cannot approve own Module 4 proposal.</td></tr>
         <tr><td>Faculty Extension Coordinator</td><td>Creates programs/projects, handles college assessment work, encodes accomplishments and engagements, and submits proposals.</td><td>Program edit/delete is limited to records the user created; college scope applies.</td></tr>
         <tr><td>College/Department Head</td><td>Views same-college data and performs the Immediate Head/Dean notation step for Module 4 proposals.</td><td>Cannot act at later CALO, Academic Affairs, VPAA, or President stages.</td></tr>
-        <tr><td>Community Partner</td><td>Participates in community surveys and may access assigned/partner outreach information and engagement profile features.</td><td>Cannot design surveys, validate needs, or approve institutional workflows.</td></tr>
-        <tr><td>External Evaluator</td><td>Views projects when assigned as an evaluator and can access engagement profile features.</td><td>No general project creation or institutional approval authority.</td></tr>
-        <tr><td>Student/Volunteer</td><td>Views assigned projects and personal engagement profile; may submit a Module 4 proposal when attached to a college.</td><td>Cannot validate needs or approve engagement/proposal workflow stages.</td></tr>
-        <tr><td>Alumni Partner</td><td>Views authorized project assignments and personal engagement information.</td><td>No general create, validation, or approval authority.</td></tr>
-        <tr><td>Monitoring and Evaluation Team</td><td>Monitors projects, surveys, priority needs, accomplishments, engagement analytics, and approves/rejects submitted engagement records.</td><td>Cannot access the audit trail under current RBAC and cannot perform Module 4 signatory stages.</td></tr>
+        <tr><td>Community Partner</td><td>Participates in community surveys, may access assigned/partner outreach information and engagement profile features, and may prepare a need-based proposal.</td><td>Cannot design surveys, manage application templates, validate needs, or approve institutional workflows.</td></tr>
+        <tr><td>External Evaluator</td><td>Views projects when assigned as an evaluator, can access engagement profile features, and may prepare a need-based proposal.</td><td>Cannot manage application templates or perform institutional approval stages.</td></tr>
+        <tr><td>Student/Volunteer</td><td>Views assigned projects and personal engagement profile and may prepare a need-based Module 4 proposal.</td><td>Cannot validate needs, manage application templates, or approve engagement/proposal workflow stages.</td></tr>
+        <tr><td>Alumni Partner</td><td>Views authorized project assignments and personal engagement information and may prepare a need-based proposal.</td><td>Cannot manage application templates, validate needs, or approve institutional workflows.</td></tr>
+        <tr><td>Monitoring and Evaluation Team</td><td>Monitors projects, surveys, priority needs, accomplishments, engagement analytics, approves/rejects submitted engagement records, and may prepare a need-based proposal.</td><td>Cannot access the audit trail, manage application templates, or perform Module 4 signatory stages.</td></tr>
         <tr><td>Academic Affairs Officer</td><td>Reviews and endorses a Module 4 proposal at the Academic Affairs Officer stage.</td><td>Cannot act when another stage is current and cannot issue NTP.</td></tr>
         <tr><td>Vice President for Academic Affairs</td><td>Reviews and endorses Module 4 proposals to the University President.</td><td>Cannot perform final presidential approval or issue NTP.</td></tr>
         <tr><td>University President</td><td>Performs final approval of a Module 4 project proposal.</td><td>Cannot issue the CALO Notice to Proceed.</td></tr>
     </table>
+
+    <div class="callout"><strong>Project application access:</strong> every authenticated role may start and own a project proposal, including institutional users without an assigned college. This does not grant template administration, priority-need validation, or approval authority. Those permissions remain role- and stage-specific.</div>
 
     <h3>3.1 General permission rules</h3>
     <ul>
@@ -168,7 +226,7 @@
     </ul>
 
     <div class="page-break"></div>
-    <h2>4. Shared Features</h2>
+    <h2 id="shared-features">4. Shared Features</h2>
 
     <h3>4.1 Dashboard</h3>
     <p>The Dashboard is role-aware. It may show outreach project totals, verified engagements, verified service hours, survey responses, priority needs, accomplishments, communities, programs, project status summaries, pending engagement reviews, and recent records.</p>
@@ -190,7 +248,7 @@
     </ul>
     <p>PDF endpoints are rate-limited. Repeated rapid downloads may require waiting before trying again.</p>
 
-    <h2>5. Module 1: Outreach Management</h2>
+    <h2 id="module-1">5. Module 1: Outreach Management</h2>
     <p>Module 1 maintains the operational structure and results of PLP outreach. It contains Outreach Programs, Outreach Projects, and Accomplishment Records.</p>
 
     <h3>5.1 Outreach Programs</h3>
@@ -230,7 +288,7 @@
     </ul>
     <p>Accomplishments support dashboard reporting and provide evidence for actual program implementation. Engagement records may also reference an outreach project to document individual participation.</p>
 
-    <h2>6. Module 2: Community Needs Assessment</h2>
+    <h2 id="module-2">6. Module 2: Community Needs Assessment</h2>
     <p>Module 2 identifies and validates community needs. It is the required source of evidence for Module 4 proposals.</p>
 
     <h3>6.1 Communities</h3>
@@ -275,7 +333,7 @@
     <div class="callout danger"><strong>Critical rule:</strong> a project proposal cannot be submitted without an existing validated community need. Pending or rejected needs cannot be used to satisfy the Module 4 gate.</div>
 
     <div class="page-break"></div>
-    <h2>7. Module 3: Community Engagement Profiles</h2>
+    <h2 id="module-3">7. Module 3: Community Engagement Profiles</h2>
     <p>Module 3 records and verifies the community engagement contributions of PLP users. Each approved participant row contributes to that person's engagement portfolio.</p>
 
     <h3>7.1 Engagement records</h3>
@@ -325,36 +383,58 @@
     </ul>
     <div class="callout"><strong>Can:</strong> download a verified portfolio. <strong>Cannot:</strong> make a Draft, Submitted, or Rejected activity appear as verified simply by viewing the profile.</div>
 
-    <h2>8. Module 4: Community Extension Project Applications</h2>
+    <h2 id="module-4">8. Module 4: Community Extension Project Applications</h2>
     <p>Module 4 manages the proposal lifecycle from need-based draft through final approval and Notice to Proceed.</p>
 
     <h3>8.1 Who can access and apply?</h3>
     <ul>
-        <li><strong>Viewers:</strong> Super Administrator, CALO Administrator, CALO Staff, College Administrator, Coordinator, Project Proponent, Faculty Extension Coordinator, College/Department Head, Student/Volunteer, Academic Affairs Officer, VPAA, University President.</li>
-        <li><strong>Applicants:</strong> College Administrator, Coordinator, Project Proponent, Faculty Extension Coordinator, Student/Volunteer, provided the user has an assigned college.</li>
+        <li><strong>Applicants:</strong> every authenticated system role may create and own a project proposal.</li>
+        <li><strong>Template managers:</strong> Super Administrator and CALO Administrator.</li>
         <li><strong>Visibility:</strong> applicant, same-college authorized users, and institutional users without college scope can view eligible proposals.</li>
+        <li><strong>Approvers:</strong> only the role assigned to the proposal's current workflow stage may record a decision.</li>
     </ul>
 
-    <h3>8.2 Proposal contents</h3>
+    <h3 id="application-templates">8.2 Project Application Templates</h3>
+    <p>Project Application Templates are versioned, schema-driven forms used inside the proposal modal. The system is initially seeded with three forms based on the official PLP documents:</p>
+    <table>
+        <tr><th>Template</th><th>Phase</th><th>Purpose</th></tr>
+        <tr><td>Community Extension and Outreach Project Application Form</td><td>Application</td><td>Captures project information, need basis, overview, classification, strategic alignment, resources, budget, sustainability, risk, and monitoring information. This is the required proposal form.</td></tr>
+        <tr><td>Project Implementation Profile</td><td>Implementation</td><td>Records implementation details, reach, actual beneficiaries, budget expenditures, synopsis, accomplishment, measurable change, and supporting evidence.</td></tr>
+        <tr><td>Impact and Outcomes Monitoring &amp; Evaluation Form</td><td>Monitoring</td><td>Records project reach, objective achievement, measurable outcomes, NPS, sustainability, overall impact, and recommendations.</td></tr>
+    </table>
+
+    <h4>Managing templates</h4>
+    <ol>
+        <li>Open <strong>Settings → Project Application Templates</strong>.</li>
+        <li>Select <strong>Add Template</strong>, or edit an existing record.</li>
+        <li>Enter the title, unique code, version, phase, status, required flag, and display order.</li>
+        <li>Use the visual builder to add sections and fields.</li>
+        <li>Choose each field type, label, key, help text, and required status.</li>
+        <li>For dropdown, single-choice, or multiple-choice fields, add the available options.</li>
+        <li>Reorder sections or fields using the arrow controls, then save.</li>
+    </ol>
+    <div class="callout warning"><strong>Version protection:</strong> after a template has proposal responses, its code, version, phase, and form structure cannot be changed. Archive it and create a new version so historical responses remain readable and accurate.</div>
+    <p>Only <span class="status">Published</span> templates appear as tabs in the proposal form. Draft templates remain under preparation; Archived templates are retained for history but are not offered for new responses.</p>
+
+    <h3>8.3 Proposal contents and form tabs</h3>
     <ul>
-        <li>Validated priority need and affected community</li>
-        <li>Title and rationale</li>
-        <li>Objectives and beneficiaries</li>
-        <li>Expected outputs and outcomes</li>
-        <li>Sustainability plan and risk assessment</li>
-        <li>Monitoring indicators</li>
-        <li>SDG and development-plan alignment</li>
-        <li>Partner involvement and proposed budget</li>
-        <li>Resources and workplan information supported by the API data model</li>
+        <li>Selected community and its validated priority need</li>
+        <li>Read-only validated needs and submitted survey findings for the selected community</li>
+        <li>Suggested outreach programs, survey remarks, and question-and-answer evidence</li>
+        <li>Published application-template tabs, with required fields indicated by an asterisk</li>
+        <li>Application information including title, rationale, objectives, beneficiaries, outputs, outcomes, alignment, resources, partner involvement, risks, monitoring, sustainability, and budget</li>
+        <li>Implementation and monitoring information captured in their corresponding lifecycle forms</li>
         <li>Supporting documents: MOA, letter, budget, workplan, or other accepted office files</li>
     </ul>
 
-    <h3>8.3 Applicant workflow</h3>
+    <h3 id="applicant-workflow">8.4 Applicant workflow</h3>
     <ol>
         <li>Open <strong>Project Applications</strong>.</li>
         <li>Select <strong>Add Proposal</strong>.</li>
-        <li>Select a validated community need. If none is available, coordinate with Module 2 reviewers.</li>
-        <li>Complete required narrative, alignment, and budget fields.</li>
+        <li>Select a community. The system shows its validated priority needs and submitted survey insights.</li>
+        <li>Select one validated community need. The proposal's stored community is derived from that need to prevent a mismatched relationship.</li>
+        <li>Review suggested outreach programs, remarks, and survey answers before designing the intervention.</li>
+        <li>Move through the form tabs and complete the required application fields. Other lifecycle tabs can be updated as implementation and monitoring data becomes available.</li>
         <li>Save as Draft.</li>
         <li>Open the proposal to upload supporting documents if required.</li>
         <li>Select <strong>Submit</strong>. The proposal enters Immediate Head/Dean review.</li>
@@ -362,7 +442,7 @@
     </ol>
     <p>The applicant may edit or delete only an owned proposal in Draft or Revision Requested status.</p>
 
-    <h3>8.4 Approval sequence</h3>
+    <h3>8.5 Approval sequence</h3>
     <table>
         <tr><th>Order</th><th>Workflow step</th><th>Authorized role</th><th>Purpose</th></tr>
         <tr><td>1</td><td>Immediate Head / Dean</td><td>College/Department Head from the proposal's college</td><td>Notation and college-level review</td></tr>
@@ -380,10 +460,10 @@
     </ul>
     <div class="callout warning"><strong>Cannot:</strong> a reviewer cannot approve out of sequence, approve while another role owns the current stage, or use a copied URL to bypass the stage policy.</div>
 
-    <h3>8.5 Notice to Proceed</h3>
+    <h3>8.6 Notice to Proceed</h3>
     <p>After presidential approval, the Super Administrator or CALO Administrator can issue the NTP. The proposal status becomes <span class="status">NTP Issued</span>, the applicant receives a notification, and authorized viewers can download the NTP PDF.</p>
 
-    <h3>8.6 Proposal statuses</h3>
+    <h3>8.7 Proposal statuses</h3>
     <table>
         <tr><th>Status</th><th>Description</th></tr>
         <tr><td>Draft</td><td>Applicant is preparing the proposal.</td></tr>
@@ -395,7 +475,7 @@
     </table>
 
     <div class="page-break"></div>
-    <h2>9. Administration and Audit Trail</h2>
+    <h2 id="administration">9. Administration and Audit Trail</h2>
 
     <h3>9.1 User management</h3>
     <ul>
@@ -428,40 +508,44 @@
     </ol>
     <div class="callout"><strong>Security:</strong> password, confirmation, current-password, token, and authorization fields are redacted by the audit service. Audit entries cannot be edited through the UI.</div>
 
-    <h2>10. End-to-End System Flow</h2>
+    <h2 id="system-flow">10. End-to-End System Flow</h2>
     <ol>
         <li><strong>Administration:</strong> set up colleges, roles, users, and communities.</li>
         <li><strong>Assessment preparation:</strong> CALO designs and publishes a survey template and questions.</li>
         <li><strong>Field assessment:</strong> an authorized respondent selects a community, completes the survey, ranks needs, and submits it.</li>
         <li><strong>Need review:</strong> authorized reviewers validate or reject priority needs.</li>
-        <li><strong>Proposal preparation:</strong> an eligible applicant selects a validated need and writes the Module 4 proposal.</li>
+        <li><strong>Template preparation:</strong> CALO maintains and publishes versioned application, implementation-profile, and impact-monitoring forms.</li>
+        <li><strong>Proposal preparation:</strong> any authenticated applicant selects a community, reviews its validated needs and survey insights, selects a validated need, and completes the published application form.</li>
         <li><strong>Approval:</strong> the proposal follows Head/Dean → CALO Staff → CALO Head → Academic Affairs Officer → VPAA → President.</li>
         <li><strong>Implementation authorization:</strong> CALO issues the Notice to Proceed.</li>
-        <li><strong>Operational tracking:</strong> authorized users maintain related programs, projects, and implementation records.</li>
+        <li><strong>Operational tracking:</strong> authorized users maintain related programs and projects, while the proposal owner completes applicable implementation and monitoring form tabs.</li>
         <li><strong>Accomplishment:</strong> budget, volunteer, impact, success, satisfaction, and execution information is recorded.</li>
         <li><strong>Individual engagement:</strong> participant activities are encoded, submitted, and verified.</li>
         <li><strong>Reporting:</strong> dashboards, engagement profile PDFs, survey PDFs, NTP PDFs, and audit monitoring support evaluation and accreditation.</li>
     </ol>
 
-    <h2>11. Common Tasks by Role</h2>
+    <h2 id="role-tasks">11. Common Tasks by Role</h2>
     <table>
         <tr><th>Role</th><th>Recommended working checklist</th></tr>
-        <tr><td>Super Administrator</td><td>Maintain colleges/users; review system access; validate needs; review engagements; monitor audit logs; support proposals/NTP; confirm dashboard data.</td></tr>
-        <tr><td>CALO Administrator</td><td>Administer accounts; design surveys; validate needs; perform CALO Head review; issue NTP after approval; review engagements; inspect audit trail.</td></tr>
+        <tr><td>Super Administrator</td><td>Maintain colleges/users and project-application templates; review system access; validate needs; review engagements; monitor audit logs; support proposals/NTP; confirm dashboard data.</td></tr>
+        <tr><td>CALO Administrator</td><td>Administer accounts; design surveys and project-application templates; validate needs; perform CALO Head review; issue NTP after approval; review engagements; inspect audit trail.</td></tr>
         <tr><td>College Administrator</td><td>Maintain same-college users; coordinate community data; conduct surveys; create accomplishments; encode grouped engagement participants; prepare proposals.</td></tr>
         <tr><td>Faculty Extension Coordinator</td><td>Create/own programs; manage eligible projects; conduct assessments; encode accomplishments/engagements; prepare proposals.</td></tr>
         <tr><td>Monitoring and Evaluation Team</td><td>Review assessments and priority needs; monitor accomplishments; approve/reject submitted engagement records; use analytics and dashboards.</td></tr>
-        <tr><td>Applicant</td><td>Confirm a validated need exists; complete all proposal fields; upload evidence; submit; respond to revision remarks; monitor notifications.</td></tr>
+        <tr><td>Applicant (any authenticated role)</td><td>Select a community; review needs and survey insights; select a validated need; complete every required application-template field; upload evidence; submit; respond to revision remarks; monitor notifications; complete later lifecycle tabs when applicable.</td></tr>
         <tr><td>Proposal Signatory</td><td>Open notifications; verify the current stage; review need, narratives, budget, documents, and prior approvals; approve, revise, or reject with appropriate remarks.</td></tr>
         <tr><td>Faculty/Staff/Student Participant</td><td>Review personal engagement profile; report missing activities to an authorized encoder; download verified portfolio when needed.</td></tr>
     </table>
 
-    <h2>12. Troubleshooting and Good Practices</h2>
+    <h2 id="troubleshooting">12. Troubleshooting and Good Practices</h2>
     <table>
         <tr><th>Situation</th><th>What to check</th></tr>
         <tr><td>A menu is missing</td><td>Confirm the account role. The sidebar intentionally hides features outside the role group.</td></tr>
         <tr><td>Forbidden when opening a URL</td><td>The server rejected the role, scope, ownership, status, or workflow stage. Request the correct assignment; do not try to bypass it.</td></tr>
         <tr><td>No need is available in a proposal</td><td>The need must come from a submitted assessment and have Validated status.</td></tr>
+        <tr><td>A project form tab is missing</td><td>Confirm that the corresponding application template is Published and active. Draft and Archived templates are not offered to applicants.</td></tr>
+        <tr><td>A template cannot be structurally edited</td><td>A template with saved proposal responses is version-protected. Create a new version so historical submissions retain their original field definitions.</td></tr>
+        <tr><td>A proposal reports missing template fields</td><td>Open each required form tab and complete all required fields. For selection fields, choose one of the configured options.</td></tr>
         <tr><td>Cannot edit a record</td><td>Check ownership and status. Submitted/approved records are commonly locked.</td></tr>
         <tr><td>Cannot approve a proposal</td><td>Confirm the proposal is Under Review and currently assigned to your exact workflow stage.</td></tr>
         <tr><td>Engagement missing from profile total</td><td>Only Approved engagement records are verified and counted.</td></tr>
@@ -479,12 +563,15 @@
         <li>Do not share passwords or leave sessions open on shared computers.</li>
     </ul>
 
-    <h2>13. Glossary</h2>
+    <h2 id="glossary">13. Glossary</h2>
     <table>
         <tr><th>Term</th><th>Meaning</th></tr>
         <tr><td>CALO</td><td>The university office responsible for community affairs/linkages/outreach administration in this workflow.</td></tr>
         <tr><td>Community Need</td><td>A ranked concern identified through a community needs assessment.</td></tr>
         <tr><td>Validated Need</td><td>A priority need approved by an authorized Module 2 reviewer and eligible for proposal linkage.</td></tr>
+        <tr><td>Project Application Template</td><td>A versioned, CALO-managed form definition used to collect proposal application, implementation-profile, or impact-monitoring information.</td></tr>
+        <tr><td>Template Response</td><td>The applicant's saved answers to a specific version of a project application template.</td></tr>
+        <tr><td>Template Phase</td><td>The lifecycle purpose of a form: application, implementation, or monitoring and evaluation.</td></tr>
         <tr><td>Engagement Record</td><td>A user's participation in an outreach, extension, volunteerism, service-learning, training, or related activity.</td></tr>
         <tr><td>MOV</td><td>Means of Verification or supporting evidence for an activity or proposal.</td></tr>
         <tr><td>NTP</td><td>Notice to Proceed issued after final proposal approval.</td></tr>
@@ -495,9 +582,10 @@
     </table>
 
     <div class="callout warning">
-        <strong>Version note:</strong> This manual documents the implemented Version 1 behavior as of September 19, 2026. Permissions and workflows should be reviewed whenever roles, policies, routes, or institutional procedures change.
+        <strong>Version note:</strong> This manual documents the implemented Version 1 behavior as of October 8, 2026, including visual project-application template management and template-driven proposal forms. Permissions and workflows should be reviewed whenever roles, policies, routes, or institutional procedures change.
     </div>
 
-    <p class="footer-note">PLP Community Outreach Management System — Complete User Manual — Version 1.0</p>
+    <p class="footer-note">PLP Community Outreach Management System — Complete User Manual — Version 1.1</p>
+    </main>
 </body>
 </html>
